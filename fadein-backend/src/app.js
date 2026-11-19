@@ -5,6 +5,9 @@ import 'dotenv/config'
 import pool from './config/database.js'
 import authRoutes from './routes/authRoutes.js'
 import userRoutes from './routes/userRoutes.js'
+import barberRoutes from './routes/barberRoutes.js'
+import serviceRoutes from './routes/serviceRoutes.js'
+import bookingRoutes from './routes/bookingRoutes.js'
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js'
 
 const app = express()
@@ -55,6 +58,9 @@ app.get('/api/health', async (req, res) => {
 
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/barbers', barberRoutes)
+app.use('/api/services', serviceRoutes)
+app.use('/api/bookings', bookingRoutes)
 
 app.use(notFound)
 app.use(errorHandler)
