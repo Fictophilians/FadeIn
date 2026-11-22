@@ -1,30 +1,41 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:fadein_app/core/theme.dart';
+import 'package:fadein_app/core/tokens.dart';
+import 'package:fadein_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fadein_app/main.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('halaman pratinjau tema tampil', (tester) async {
+    // Viewport tinggi supaya seluruh ListView dibangun (bukan lazy).
+    tester.view.physicalSize = const Size(1080, 4000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(const FadeInApp());
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(find.text('PREVIEW TEMA'), findsOneWidget);
+    expect(find.text('Booking Sekarang'), findsOneWidget);
+    expect(find.text('Lihat Layanan'), findsOneWidget);
+    expect(find.text('Nama lengkap'), findsOneWidget);
+    expect(find.text('Rp50.000'), findsWidgets);
+    expect(find.text('Selesai'), findsOneWidget);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('token dan theme sesuai DESIGN.md', () {
+    expect(AppTextTheme.display.fontFamily, 'Oswald');
+    expect(AppTextTheme.section.fontFamily, 'Oswald');
+    expect(AppTextTheme.body.fontFamily, 'Inter');
+    expect(AppSpacing.screenH, 20);
+    expect(AppRadius.card, 16);
+    expect(AppRadius.input, 14);
+    expect(AppRadius.button, 12);
+
+    final theme = AppTheme.light;
+    expect(theme.useMaterial3, isTrue);
+    expect(theme.textTheme.displaySmall?.fontFamily, 'Oswald');
+    expect(theme.textTheme.bodyMedium?.fontFamily, 'Inter');
+    expect(theme.cardTheme.elevation, 0);
+    expect(theme.scaffoldBackgroundColor, AppColors.bg);
   });
 }
