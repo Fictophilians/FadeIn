@@ -55,7 +55,7 @@ void main() {
     test('admin ke halaman admin', () {
       expect(
         SplashPage.ruteUntuk(token: 'x', role: 'admin'),
-        '/admin/bookings',
+        '/admin/barbers',
       );
     });
   });

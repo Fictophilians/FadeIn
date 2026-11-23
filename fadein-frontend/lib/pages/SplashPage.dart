@@ -12,7 +12,7 @@ class SplashPage extends StatefulWidget {
   /// Dipisah sebagai fungsi murni supaya bisa diuji tanpa secure storage.
   static String ruteUntuk({String? token, String? role}) {
     if (token == null || token.isEmpty) return '/login';
-    return role == 'admin' ? '/admin/bookings' : '/home';
+    return role == 'admin' ? '/admin/barbers' : '/home';
   }
 
   @override
