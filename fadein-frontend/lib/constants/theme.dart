@@ -1,11 +1,112 @@
 import 'package:flutter/material.dart';
 
-import 'tokens.dart';
+import 'app_colors.dart';
+
+/// Skala jarak — `docs/DESIGN.md` bagian 4.
+abstract final class AppSpacing {
+  static const xxs = 4.0;
+  static const xs = 8.0;
+  static const sm = 12.0;
+  static const md = 16.0;
+
+  /// Padding horizontal layar.
+  static const lg = 20.0;
+
+  /// Padding vertikal section.
+  static const xl = 24.0;
+  static const xxl = 32.0;
+
+  /// Alias konteks supaya layar mudah dibaca.
+  static const screenH = lg;
+  static const sectionV = xl;
+  static const cardGap = sm;
+  static const cardPadding = md;
+  static const labelGap = xs;
+  static const fieldGap = md;
+}
+
+/// Radius sudut — `docs/DESIGN.md` bagian 4.
+abstract final class AppRadius {
+  static const sm = 8.0;
+  static const md = 12.0;
+  static const lg = 16.0;
+
+  static const button = md;
+  static const input = 14.0;
+  static const card = lg;
+
+  /// Bottom sheet / dialog (atas saja).
+  static const sheet = 20.0;
+
+  /// Chip / badge.
+  static const pill = 999.0;
+}
+
+/// Tipografi — `docs/DESIGN.md` bagian 3.
+///
+/// Oswald hanya untuk display/judul, Inter untuk seluruh teks lain.
+abstract final class AppTextTheme {
+  /// Judul layar: Oswald 600 / 26 / 1.15 — pakai UPPERCASE.
+  static const display = TextStyle(
+    fontFamily: 'Oswald',
+    fontWeight: FontWeight.w600,
+    fontSize: 26,
+    height: 1.15,
+    letterSpacing: 0.5,
+    color: AppColors.ink,
+  );
+
+  /// Judul section: Oswald 500 / 18 / 1.2 — pakai UPPERCASE.
+  static const section = TextStyle(
+    fontFamily: 'Oswald',
+    fontWeight: FontWeight.w500,
+    fontSize: 18,
+    height: 1.2,
+    letterSpacing: 0.5,
+    color: AppColors.ink,
+  );
+
+  /// Body: Inter 400 / 15 / 1.5.
+  static const body = TextStyle(
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w400,
+    fontSize: 15,
+    height: 1.5,
+    color: AppColors.ink,
+  );
+
+  /// Body kecil / caption: Inter 400 / 13 / 1.4.
+  static const caption = TextStyle(
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w400,
+    fontSize: 13,
+    height: 1.4,
+    color: AppColors.muted,
+  );
+
+  /// Label tombol & form: Inter 600 / 14 / 1.2.
+  static const label = TextStyle(
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w600,
+    fontSize: 14,
+    height: 1.2,
+    color: AppColors.ink,
+  );
+
+  /// Harga: Inter 700 / 16 / 1.2.
+  static const price = TextStyle(
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w700,
+    fontSize: 16,
+    height: 1.2,
+    color: AppColors.ink,
+  );
+}
 
 /// `ThemeData` resmi FadeIn — dipetakan langsung dari `docs/DESIGN.md`.
 ///
 /// Aturan penting: card memakai border tanpa shadow, tombol setinggi 48,
-/// input setinggi 52 dengan border fokus `gold`.
+/// input radius 14 dengan border fokus `gold`.
 abstract final class AppTheme {
   static ThemeData get light {
     const scheme = ColorScheme(

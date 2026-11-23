@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'core/theme.dart';
-import 'dev/theme_preview_page.dart';
+import 'constants/theme.dart';
+import 'pages/ThemePreviewPage.dart';
 
 void main() {
   runApp(const FadeInApp());

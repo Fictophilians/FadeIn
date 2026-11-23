@@ -1,5 +1,5 @@
-import 'package:fadein_app/core/theme.dart';
-import 'package:fadein_app/core/tokens.dart';
+import 'package:fadein_app/constants/app_colors.dart';
+import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

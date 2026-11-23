@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../core/tokens.dart';
+import '../constants/app_colors.dart';
+import '../constants/theme.dart';
 
 /// Halaman pratinjau tema — hanya untuk QA visual, bukan bagian alur aplikasi.
 ///
