@@ -1,4 +1,8 @@
 import 'package:fadein_app/constants/theme.dart';
+import 'package:fadein_app/pages/HomePage.dart';
+import 'package:fadein_app/pages/LoginPage.dart';
+import 'package:fadein_app/pages/RegisterPage.dart';
+import 'package:fadein_app/pages/RuteTerjaga.dart';
 import 'package:fadein_app/pages/SplashPage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -21,8 +25,22 @@ class FadeInApp extends StatelessWidget {
       title: 'FadeIn',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      // Halaman login, home, dan admin didaftarkan pada T8–T11.
-      home: const SplashPage(),
+      initialRoute: '/',
+      routes: {
+        '/': (_) => const SplashPage(),
+        '/login': (_) => const LoginPage(),
+        '/register': (_) => const RegisterPage(),
+        '/home': (_) => const RuteTerjaga(
+              role: 'customer',
+              child: HomePage(),
+            ),
+        // /booking, /my-bookings, /profile menyusul di T12–T15.
+        // /admin/* menyusul di T16–T18.
+      },
+      // route belum terdaftar jangan sampai membuat layar mati
+      onUnknownRoute: (_) => MaterialPageRoute(
+        builder: (_) => const LoginPage(),
+      ),
     );
   }
 }
