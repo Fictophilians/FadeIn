@@ -45,6 +45,7 @@ class Apiservice {
 
   // cache di memori supaya tidak baca storage di setiap request
   static String? _token;
+  static Map<String, dynamic>? _user;
 
   // ---------- token & sesi ----------
 
@@ -60,19 +61,24 @@ class Apiservice {
   }
 
   static Future<void> saveUser(Map<String, dynamic> user) async {
+    _user = user;
     await _storage.write(key: _keyUser, value: jsonEncode(user));
   }
 
   static Future<Map<String, dynamic>?> getUser() async {
+    if (_user != null) return _user;
+
     final raw = await _storage.read(key: _keyUser);
     if (raw == null || raw.isEmpty) return null;
 
     final data = jsonDecode(raw);
-    return data is Map<String, dynamic> ? data : null;
+    _user = data is Map<String, dynamic> ? data : null;
+    return _user;
   }
 
   static Future<void> logout() async {
     _token = null;
+    _user = null;
     await _storage.delete(key: _keyToken);
     await _storage.delete(key: _keyUser);
   }
@@ -81,6 +87,11 @@ class Apiservice {
   @visibleForTesting
   static void setTokenCache(String? token) {
     _token = token;
+  }
+
+  @visibleForTesting
+  static void setUserCache(Map<String, dynamic>? user) {
+    _user = user;
   }
 
   // ---------- request ----------
