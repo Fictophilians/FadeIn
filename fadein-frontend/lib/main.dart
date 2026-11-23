@@ -1,5 +1,5 @@
 import 'package:fadein_app/constants/theme.dart';
-import 'package:fadein_app/pages/ThemePreviewPage.dart';
+import 'package:fadein_app/pages/SplashPage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -21,8 +21,8 @@ class FadeInApp extends StatelessWidget {
       title: 'FadeIn',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      // Sementara: halaman pratinjau tema. Diganti Splash pada T6.
-      home: const ThemePreviewPage(),
+      // Halaman login, home, dan admin didaftarkan pada T8–T11.
+      home: const SplashPage(),
     );
   }
 }

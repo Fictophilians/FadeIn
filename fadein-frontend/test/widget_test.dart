@@ -1,6 +1,7 @@
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
-import 'package:fadein_app/main.dart';
+import 'package:fadein_app/pages/SplashPage.dart';
+import 'package:fadein_app/pages/ThemePreviewPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,7 +13,9 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const FadeInApp());
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.light, home: const ThemePreviewPage()),
+    );
 
     expect(find.text('PREVIEW TEMA'), findsOneWidget);
     expect(find.text('Booking Sekarang'), findsOneWidget);
@@ -37,5 +40,23 @@ void main() {
     expect(theme.textTheme.bodyMedium?.fontFamily, 'Inter');
     expect(theme.cardTheme.elevation, 0);
     expect(theme.scaffoldBackgroundColor, AppColors.bg);
+  });
+
+  group('SplashPage.ruteUntuk', () {
+    test('tanpa token ke login', () {
+      expect(SplashPage.ruteUntuk(token: null, role: 'admin'), '/login');
+      expect(SplashPage.ruteUntuk(token: '', role: 'customer'), '/login');
+    });
+
+    test('customer ke home', () {
+      expect(SplashPage.ruteUntuk(token: 'x', role: 'customer'), '/home');
+    });
+
+    test('admin ke halaman admin', () {
+      expect(
+        SplashPage.ruteUntuk(token: 'x', role: 'admin'),
+        '/admin/bookings',
+      );
+    });
   });
 }
