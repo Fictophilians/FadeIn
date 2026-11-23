@@ -1,9 +1,14 @@
+import 'package:fadein_app/constants/theme.dart';
+import 'package:fadein_app/pages/ThemePreviewPage.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-import 'constants/theme.dart';
-import 'pages/ThemePreviewPage.dart';
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-void main() {
+  // memuat nama bulan & hari bahasa Indonesia untuk DateFormat
+  await initializeDateFormatting('id_ID');
+
   runApp(const FadeInApp());
 }
 
