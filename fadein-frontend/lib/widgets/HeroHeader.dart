@@ -2,29 +2,36 @@ import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 
-/// Header gelap di atas layar, dipakai login dan splash.
+/// Header foto penuh dengan tirai gelap di bagian bawah.
 ///
-/// Tanpa foto: blok `inkSoft` → `ink` dengan aksen gold. Ini pilihan sadar
-/// supaya tidak perlu aset foto berlisensi dan tetap cepat dimuat.
+/// Dipakai layar login, register, dan splash. Foto menutup seluruh area
+/// (`BoxFit.cover`, fokus atas supaya wajah tidak terpotong), lalu gradien
+/// `AppGradient.heroOverlay` memastikan teks putih tetap terbaca.
 ///
 /// ```dart
 /// HeroHeader(
-///   height: 320,
-///   child: Text('Discover Your\nSignature Style', style: ...),
+///   image: 'assets/images/hero_barber.jpg',
+///   height: 340,
+///   child: Text('TEMUKAN GAYA KAMU', style: ...),
 /// )
 /// ```
 class HeroHeader extends StatelessWidget {
   const HeroHeader({
     super.key,
+    this.image = 'assets/images/hero_barber.jpg',
     this.height = 320,
     this.child,
     this.onBack,
     this.roundedBottom = false,
+    this.fadeToInk = false,
   });
+
+  /// Path aset (`assets/...`). `null` = blok gelap tanpa foto.
+  final String? image;
 
   final double height;
 
-  /// Isi yang diletakkan di bagian bawah, di atas gradien.
+  /// Isi yang diletakkan di bagian bawah foto, di atas gradien.
   final Widget? child;
 
   /// Bila diisi, tombol bulat kembali muncul di kiri atas.
@@ -32,6 +39,9 @@ class HeroHeader extends StatelessWidget {
 
   /// `true` = sudut bawah membulat.
   final bool roundedBottom;
+
+  /// `true` = latar belakang jadi `ink` polos (dipakai saat foto gagal).
+  final bool fadeToInk;
 
   @override
   Widget build(BuildContext context) {
@@ -44,39 +54,51 @@ class HeroHeader extends StatelessWidget {
       child: SizedBox(
         height: height,
         width: double.infinity,
-        child: DecoratedBox(
-          decoration: const BoxDecoration(gradient: AppGradient.promo),
-          child: Stack(
-            children: [
-              // garis gold tipis sebagai aksen, bukan hiasan berlebih
-              Positioned(
-                left: AppSpacing.screenH,
-                right: AppSpacing.screenH,
-                bottom: 0,
-                child: Container(height: 3, color: AppColors.gold),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (image != null)
+              Image.asset(
+                image!,
+                fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
+                errorBuilder: (_, _, _) =>
+                    const ColoredBox(color: AppColors.inkSoft),
+              )
+            else
+              const ColoredBox(color: AppColors.inkSoft),
+
+            if (fadeToInk)
+              // splash: tirai rata supaya logo jadi fokus, foto tetap terasa
+              const DecoratedBox(
+                decoration: BoxDecoration(color: AppColors.splashScrim),
+              )
+            else
+              // hero: gelap bertingkat, judul terbaca di bawah
+              const DecoratedBox(
+                decoration: BoxDecoration(gradient: AppGradient.heroOverlay),
               ),
 
-              SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenH,
-                    AppSpacing.md,
-                    AppSpacing.screenH,
-                    AppSpacing.xl,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (onBack != null) _TombolKembali(onTap: onBack!),
-                      const Spacer(),
-                      ?child,
-                    ],
-                  ),
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenH,
+                  AppSpacing.md,
+                  AppSpacing.screenH,
+                  AppSpacing.xl,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (onBack != null) _TombolKembali(onTap: onBack!),
+                    const Spacer(),
+                    ?child,
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

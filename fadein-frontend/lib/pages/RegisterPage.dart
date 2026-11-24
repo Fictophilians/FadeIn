@@ -104,7 +104,7 @@ class _RegisterPageState extends State<RegisterPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             HeroHeader(
-              height: 200,
+              height: 240,
               onBack: () => Navigator.pushReplacementNamed(context, '/login'),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

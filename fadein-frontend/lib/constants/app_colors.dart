@@ -57,6 +57,20 @@ abstract final class AppColors {
 
   /// Scrim `LoadingOverlay` (`#00000040`).
   static const scrim = Color(0x40000000);
+
+  // ─── Tirai di atas foto hero ───
+
+  /// Atas foto: gelap tipis, cukup untuk tombol kembali putih.
+  static const heroTop = Color(0x59000000);
+
+  /// Tengah foto: bening supaya subjek tetap terlihat.
+  static const heroMid = Color(0x00000000);
+
+  /// Bawah foto: pekat, tempat judul putih diletakkan.
+  static const heroBottom = Color(0xE6121212);
+
+  /// Tirai penuh untuk splash (foto jadi latar, logo jadi fokus).
+  static const splashScrim = Color(0xC7121212);
 }
 
 /// Pasangan warna [StatusBadge] per status booking.

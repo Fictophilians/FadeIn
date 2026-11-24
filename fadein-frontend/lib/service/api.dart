@@ -32,7 +32,11 @@ class Apiservice {
   static String get baseUrl {
     const dariEnv = String.fromEnvironment('API_BASE_URL');
     if (dariEnv.isNotEmpty) return dariEnv;
-    return 'http://10.0.2.2:3000/api';
+    // Backend sudah deploy ke Vercel. Default ini membuat `flutter run` polos
+    // langsung jalan di Chrome, HP, maupun emulator — `10.0.2.2` hanya benar
+    // untuk emulator Android, dan backend lokal tidak bisa menjangkau Aiven
+    // dari jaringan Indonesia.
+    return 'https://fadein-backend.vercel.app/api';
   }
 
   /// Client yang bisa diganti `MockClient` saat unit test.

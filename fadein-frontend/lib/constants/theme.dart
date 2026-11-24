@@ -50,6 +50,14 @@ abstract final class AppRadius {
 
 /// Gradien bersama. Jangan tulis `LinearGradient` langsung di layar.
 abstract final class AppGradient {
+  /// Tirai gelap di bawah foto hero supaya judul putih tetap terbaca.
+  static const heroOverlay = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [AppColors.heroTop, AppColors.heroMid, AppColors.heroBottom],
+    stops: [0, 0.35, 1],
+  );
+
   /// Latar kartu promo / ajakan di beranda.
   static const promo = LinearGradient(
     begin: Alignment.topLeft,

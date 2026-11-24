@@ -90,7 +90,7 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             HeroHeader(
-              height: 300,
+              height: 340,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
