@@ -71,6 +71,9 @@ abstract final class AppColors {
 
   /// Tirai penuh untuk splash (foto jadi latar, logo jadi fokus).
   static const splashScrim = Color(0xC7121212);
+
+  /// Bawah tirai kartu berfoto.
+  static const photoScrimBottom = Color(0xD9121212);
 }
 
 /// Pasangan warna [StatusBadge] per status booking.

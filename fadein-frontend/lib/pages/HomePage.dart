@@ -8,17 +8,18 @@ import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/utils/pesan.dart';
 import 'package:fadein_app/widgets/BarberCard.dart';
 import 'package:fadein_app/widgets/EmptyState.dart';
-import 'package:fadein_app/widgets/FadeInButton.dart';
 import 'package:fadein_app/widgets/HomeHeader.dart';
-import 'package:fadein_app/widgets/PromoBanner.dart';
+import 'package:fadein_app/widgets/SectionTitle.dart';
 import 'package:fadein_app/widgets/ServiceCard.dart';
 import 'package:flutter/material.dart';
 
 /// Beranda customer — `docs/DESIGN.md` 7 nomor 4.
 ///
-/// Susunan: header sapaan → kartu promo → daftar layanan horizontal →
-/// daftar barber → tombol booking. Empat state tetap ada: loading, error,
-/// kosong, dan sukses.
+/// Susunan: blok gelap (sapaan + judul) → kartu jadwal berikutnya yang
+/// menumpuk tepi bawah blok → grid layanan → rail barber.
+///
+/// Hanya memuat `/services` dan `/barbers`. Booking terdekat dimuat terpisah
+/// dan kegagalannya tidak menjatuhkan seluruh beranda.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -29,10 +30,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<Service> services = [];
   List<Barber> barbers = [];
-
-  /// Booking aktif terdekat, bila ada. Hanya satu yang ditampilkan.
   Booking? upcoming;
-
   String namaUser = '';
 
   bool isLoading = true;
@@ -55,15 +53,9 @@ class _HomePageState extends State<HomePage> {
       final hasil = await Future.wait([
         Apiservice.get('/services'),
         Apiservice.get('/barbers'),
-        Apiservice.get('/bookings'),
       ]);
 
       if (!mounted) return;
-
-      final daftarBooking = (hasil[2] as List)
-          .map((e) => Booking.fromJson(Map<String, dynamic>.from(e as Map)))
-          .where((b) => b.status.canCancel)
-          .toList();
 
       setState(() {
         namaUser = '${user?['name'] ?? ''}'.split(' ').first;
@@ -73,9 +65,10 @@ class _HomePageState extends State<HomePage> {
         barbers = (hasil[1] as List)
             .map((e) => Barber.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
-        upcoming = daftarBooking.isEmpty ? null : daftarBooking.first;
         isLoading = false;
       });
+
+      _muatBookingTerdekat();
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -88,6 +81,22 @@ class _HomePageState extends State<HomePage> {
         error = '$e';
         isLoading = false;
       });
+    }
+  }
+
+  /// Booking aktif terdekat. Gagal di sini tidak boleh menjatuhkan beranda.
+  Future<void> _muatBookingTerdekat() async {
+    try {
+      final data = await Apiservice.get('/bookings');
+      final daftar = (data as List)
+          .map((e) => Booking.fromJson(Map<String, dynamic>.from(e as Map)))
+          .where((b) => b.status.canCancel)
+          .toList();
+
+      if (!mounted) return;
+      setState(() => upcoming = daftar.isEmpty ? null : daftar.first);
+    } catch (_) {
+      // diamkan: kartu jadwal hanya pelengkap
     }
   }
 
@@ -106,9 +115,8 @@ class _HomePageState extends State<HomePage> {
     }
 
     if (error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.screenH),
+      return SafeArea(
+        child: Center(
           child: EmptyState(
             icon: Icons.cloud_off_outlined,
             title: 'Gagal memuat data',
@@ -123,47 +131,17 @@ class _HomePageState extends State<HomePage> {
     return RefreshIndicator(
       onRefresh: muatData,
       child: ListView(
-        padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+        padding: EdgeInsets.zero,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.screenH,
-              AppSpacing.md,
-              AppSpacing.screenH,
-              AppSpacing.lg,
-            ),
-            child: HomeHeader(
-              name: namaUser.isEmpty ? 'Kak' : namaUser,
-              onBellTap: () => Pesan.sukses(context, 'Belum ada notifikasi.'),
-            ),
+          _BlokAtas(
+            nama: namaUser.isEmpty ? 'Kak' : namaUser,
+            upcoming: upcoming,
+            onBellTap: () => Pesan.sukses(context, 'Belum ada notifikasi.'),
+            onUpcomingTap: () => Navigator.pushNamed(context, '/my-bookings'),
           ),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
-            child: PromoBanner(
-              title: 'Potongan rapi, tanpa antre',
-              subtitle: 'Pilih jadwal sendiri dalam hitungan detik.',
-              actionLabel: 'Booking',
-              onAction: keBooking,
-            ),
-          ),
-
-          // booking aktif terdekat
-          if (upcoming != null) ...[
-            const SizedBox(height: AppSpacing.xl),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screenH,
-              ),
-              child: _KartuUpcoming(
-                booking: upcoming!,
-                onTap: () => Navigator.pushNamed(context, '/my-bookings'),
-              ),
-            ),
-          ],
 
           const SizedBox(height: AppSpacing.xl),
-          _JudulSection(judul: 'LAYANAN'),
+          const SectionTitle(title: 'LAYANAN'),
           const SizedBox(height: AppSpacing.sm),
 
           if (services.isEmpty)
@@ -175,20 +153,27 @@ class _HomePageState extends State<HomePage> {
               ),
             )
           else
-            SizedBox(
-              height: 180,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.screenH,
-                ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenH,
+              ),
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
                 itemCount: services.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(width: AppSpacing.cardGap),
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: AppSpacing.cardGap,
+                  mainAxisSpacing: AppSpacing.cardGap,
+                  mainAxisExtent: 148,
+                ),
                 itemBuilder: (_, i) {
                   final service = services[i];
                   return ServiceCard(
-                    compact: true,
+                    tile: true,
+                    number: '${i + 1}'.padLeft(2, '0'),
                     name: service.name,
                     price: formatRupiah(service.price),
                     duration: service.duration,
@@ -199,7 +184,7 @@ class _HomePageState extends State<HomePage> {
             ),
 
           const SizedBox(height: AppSpacing.xl),
-          _JudulSection(judul: 'BARBER'),
+          const SectionTitle(title: 'BARBER'),
           const SizedBox(height: AppSpacing.sm),
 
           if (barbers.isEmpty)
@@ -211,68 +196,64 @@ class _HomePageState extends State<HomePage> {
               ),
             )
           else
-            for (final barber in barbers)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenH,
-                  0,
-                  AppSpacing.screenH,
-                  AppSpacing.cardGap,
+            SizedBox(
+              height: BarberCard.tinggiPotret,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.screenH,
                 ),
-                child: BarberCard(
-                  name: barber.name,
-                  description: barber.description,
-                  photoUrl: barber.photo,
-                  onSelect: keBooking,
-                ),
+                itemCount: barbers.length,
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppSpacing.cardGap),
+                itemBuilder: (_, i) {
+                  final barber = barbers[i];
+                  return BarberCard(
+                    portrait: true,
+                    name: barber.name,
+                    description: barber.description,
+                    photoUrl: barber.photo,
+                    onSelect: keBooking,
+                  );
+                },
               ),
-
-          const SizedBox(height: AppSpacing.lg),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
-            child: FadeInButton(
-              label: 'Booking Sekarang',
-              icon: Icons.content_cut_rounded,
-              onPressed: keBooking,
             ),
-          ),
+
+          const SizedBox(height: AppSpacing.xxl),
         ],
       ),
     );
   }
 }
 
-/// Judul section dengan garis pendek gold di kiri.
-class _JudulSection extends StatelessWidget {
-  const _JudulSection({required this.judul});
+/// Blok gelap dengan kartu jadwal di dalamnya, tepat di bawah garis gold.
+class _BlokAtas extends StatelessWidget {  const _BlokAtas({
+    required this.nama,
+    required this.upcoming,
+    required this.onBellTap,
+    required this.onUpcomingTap,
+  });
 
-  final String judul;
+  final String nama;
+  final Booking? upcoming;
+  final VoidCallback onBellTap;
+  final VoidCallback onUpcomingTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
-      child: Row(
-        children: [
-          Container(
-            width: 3,
-            height: 16,
-            decoration: BoxDecoration(
-              color: AppColors.gold,
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          Text(judul, style: AppTextTheme.section),
-        ],
-      ),
+    return HomeHeader(
+      name: nama,
+      onBellTap: onBellTap,
+      child: upcoming == null
+          ? null
+          : _KartuJadwal(booking: upcoming!, onTap: onUpcomingTap),
     );
   }
 }
 
-/// Baris ringkas booking aktif: jam + layanan + barber.
-class _KartuUpcoming extends StatelessWidget {
-  const _KartuUpcoming({required this.booking, required this.onTap});
+/// Baris jadwal berikutnya: label, layanan, tanggal, jam besar.
+class _KartuJadwal extends StatelessWidget {
+  const _KartuJadwal({required this.booking, required this.onTap});
 
   final Booking booking;
   final VoidCallback onTap;
@@ -286,52 +267,66 @@ class _KartuUpcoming extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(AppSpacing.cardPadding),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.card),
             border: Border.all(color: AppColors.border),
           ),
           child: Row(
             children: [
+              // strip gold: penanda "ini jadwal aktif"
               Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.goldSoft,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                child: const Icon(
-                  Icons.event_available_outlined,
-                  color: AppColors.ink,
-                  size: 22,
+                width: 4,
+                decoration: const BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.horizontal(
+                    left: Radius.circular(AppRadius.card),
+                  ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      booking.serviceName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextTheme.label.copyWith(fontSize: 15),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${formatTanggal(booking.bookingDate)} · '
-                      '${booking.barberName}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextTheme.caption,
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'JADWAL BERIKUTNYA',
+                        style: AppTextTheme.caption.copyWith(
+                          fontSize: 10,
+                          letterSpacing: 0.6,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.gold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        booking.serviceName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextTheme.label.copyWith(fontSize: 15),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${formatTanggal(booking.bookingDate)} · '
+                        '${booking.barberName}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextTheme.caption.copyWith(fontSize: 11),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.xs),
-              Text(
-                booking.bookingTime,
-                style: AppTextTheme.label.copyWith(color: AppColors.gold),
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.md),
+                child: Text(
+                  booking.bookingTime,
+                  style: AppTextTheme.display.copyWith(fontSize: 22),
+                ),
               ),
             ],
           ),

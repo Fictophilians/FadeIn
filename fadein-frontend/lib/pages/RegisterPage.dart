@@ -10,10 +10,13 @@ import 'package:flutter/material.dart';
 /// Layar daftar akun — `docs/DESIGN.md` 7 nomor 3.
 ///
 /// Registrasi selalu menghasilkan role `customer`; tidak ada pilihan peran
-/// di form (backend yang menetapkan). Susunan layar mengikuti LoginPage:
-/// blok gelap pendek di atas, sheet putih berisi form.
+/// di form (backend yang menetapkan). Susunan layar mengikuti `LoginPage`:
+/// foto hero, lalu sheet putih yang menimpa tepi bawahnya.
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
+
+  /// Tinggi foto hero. Lebih pendek dari login karena formnya lebih panjang.
+  static const heroTinggi = 240.0;
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -98,37 +101,46 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Stack(
           children: [
-            HeroHeader(
-              height: 240,
-              onBack: () => Navigator.pushReplacementNamed(context, '/login'),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'BUAT AKUN',
-                    style: AppTextTheme.display.copyWith(
-                      fontSize: 30,
-                      color: AppColors.onDark,
+            SizedBox(
+              height: RegisterPage.heroTinggi,
+              width: double.infinity,
+              child: HeroHeader(
+                height: RegisterPage.heroTinggi,
+                image: 'assets/images/hero_register.jpg',
+                onBack: () =>
+                    Navigator.pushReplacementNamed(context, '/login'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'BUAT AKUN',
+                      style: AppTextTheme.display.copyWith(
+                        fontSize: 28,
+                        color: AppColors.onDark,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    'Satu menit, lalu bisa booking.',
-                    style: AppTextTheme.caption.copyWith(
-                      color: AppColors.onDark.withValues(alpha: 0.75),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      'Satu menit, lalu bisa booking.',
+                      style: AppTextTheme.caption.copyWith(
+                        color: AppColors.onDark.withValues(alpha: 0.75),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-            Transform.translate(
-              offset: const Offset(0, -AppRadius.sheetLg),
+
+            Padding(
+              padding: const EdgeInsets.only(
+                top: RegisterPage.heroTinggi - AppRadius.sheetLg,
+              ),
               child: Container(
+                width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.screenH,
                   AppSpacing.xl,
@@ -182,7 +194,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Sudah punya akun?', style: AppTextTheme.caption),
+                        Flexible(
+                          child: Text(
+                            'Sudah punya akun?',
+                            style: AppTextTheme.caption,
+                          ),
+                        ),
                         TextButton(
                           onPressed: isLoading
                               ? null

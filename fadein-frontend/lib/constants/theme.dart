@@ -58,18 +58,13 @@ abstract final class AppGradient {
     stops: [0, 0.35, 1],
   );
 
-  /// Latar kartu promo / ajakan di beranda.
-  static const promo = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [AppColors.inkSoft, AppColors.ink],
-  );
-
-  /// Sampul kartu layanan tanpa foto.
-  static const cardCover = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [AppColors.goldSoft, AppColors.bg],
+  /// Tirai bawah kartu berfoto supaya nama barber tetap terbaca.
+  /// Bukan hiasan: kontras teks putih di atas foto acak tidak bisa dijamin.
+  static const photoScrim = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [AppColors.transparent, AppColors.photoScrimBottom],
+    stops: [0.45, 1],
   );
 }
 

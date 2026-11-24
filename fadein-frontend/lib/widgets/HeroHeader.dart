@@ -2,28 +2,31 @@ import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 
-/// Header foto penuh dengan tirai gelap di bagian bawah.
+/// Header foto penuh dengan tirai gelap bertingkat.
 ///
 /// Dipakai layar login, register, dan splash. Foto menutup seluruh area
-/// (`BoxFit.cover`, fokus atas supaya wajah tidak terpotong), lalu gradien
-/// `AppGradient.heroOverlay` memastikan teks putih tetap terbaca.
+/// (`BoxFit.cover`, fokus tengah supaya subjek tidak terpotong), lalu
+/// [AppGradient.heroOverlay] memastikan teks putih tetap terbaca.
+///
+/// Foto bawaan landscape 1400×933. Untuk splash yang butuh tirai rata,
+/// kirim [scrim] eksplisit alih-alih menambah cabang di dalam widget ini.
 ///
 /// ```dart
 /// HeroHeader(
-///   image: 'assets/images/hero_barber.jpg',
-///   height: 340,
+///   image: 'assets/images/hero_login.jpg',
+///   height: 320,
 ///   child: Text('TEMUKAN GAYA KAMU', style: ...),
 /// )
 /// ```
 class HeroHeader extends StatelessWidget {
   const HeroHeader({
     super.key,
-    this.image = 'assets/images/hero_barber.jpg',
+    this.image = 'assets/images/hero_login.jpg',
     this.height = 320,
     this.child,
     this.onBack,
     this.roundedBottom = false,
-    this.fadeToInk = false,
+    this.scrim,
   });
 
   /// Path aset (`assets/...`). `null` = blok gelap tanpa foto.
@@ -31,7 +34,7 @@ class HeroHeader extends StatelessWidget {
 
   final double height;
 
-  /// Isi yang diletakkan di bagian bawah foto, di atas gradien.
+  /// Isi di bagian bawah foto, di atas gradien.
   final Widget? child;
 
   /// Bila diisi, tombol bulat kembali muncul di kiri atas.
@@ -40,8 +43,8 @@ class HeroHeader extends StatelessWidget {
   /// `true` = sudut bawah membulat.
   final bool roundedBottom;
 
-  /// `true` = latar belakang jadi `ink` polos (dipakai saat foto gagal).
-  final bool fadeToInk;
+  /// Tirai pengganti gradien. `null` → `AppGradient.heroOverlay`.
+  final Color? scrim;
 
   @override
   Widget build(BuildContext context) {
@@ -61,20 +64,16 @@ class HeroHeader extends StatelessWidget {
               Image.asset(
                 image!,
                 fit: BoxFit.cover,
-                alignment: Alignment.topCenter,
+                alignment: Alignment.center,
                 errorBuilder: (_, _, _) =>
                     const ColoredBox(color: AppColors.inkSoft),
               )
             else
               const ColoredBox(color: AppColors.inkSoft),
 
-            if (fadeToInk)
-              // splash: tirai rata supaya logo jadi fokus, foto tetap terasa
-              const DecoratedBox(
-                decoration: BoxDecoration(color: AppColors.splashScrim),
-              )
+            if (scrim != null)
+              DecoratedBox(decoration: BoxDecoration(color: scrim))
             else
-              // hero: gelap bertingkat, judul terbaca di bawah
               const DecoratedBox(
                 decoration: BoxDecoration(gradient: AppGradient.heroOverlay),
               ),

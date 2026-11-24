@@ -62,7 +62,7 @@ class _SplashPageState extends State<SplashPage> {
       backgroundColor: AppColors.ink,
       body: HeroHeader(
         height: double.infinity,
-        fadeToInk: true,
+        scrim: AppColors.splashScrim,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,

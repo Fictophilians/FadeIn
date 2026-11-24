@@ -10,10 +10,13 @@ import 'package:flutter/material.dart';
 
 /// Layar login — `docs/DESIGN.md` 7 nomor 2.
 ///
-/// Susunan: blok gelap di atas berisi judul besar, lalu sheet putih yang
-/// naik dari bawah memuat form. Pola ini sama untuk register.
+/// Foto hero di atas, lalu sheet putih yang menimpa tepi bawahnya sejauh
+/// [AppRadius.sheetLg]. Susunan ini dipakai juga oleh [RegisterPage].
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  /// Tinggi foto hero.
+  static const heroTinggi = 320.0;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -84,37 +87,47 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.bg,
       body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        // Stack: foto hero di belakang, sheet didorong turun supaya tepi
+        // atasnya menimpa foto. Tidak ada ruang mati di bawah seperti pola
+        // `Transform.translate` (parent tidak ikut menyusut).
+        child: Stack(
           children: [
-            HeroHeader(
-              height: 340,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'TEMUKAN\nGAYA KAMU',
-                    style: AppTextTheme.display.copyWith(
-                      fontSize: 34,
-                      height: 1.1,
-                      color: AppColors.onDark,
+            SizedBox(
+              height: LoginPage.heroTinggi,
+              width: double.infinity,
+              child: HeroHeader(
+                height: LoginPage.heroTinggi,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TEMUKAN GAYA KAMU',
+                      style: AppTextTheme.display.copyWith(
+                        fontSize: 28,
+                        height: 1.1,
+                        color: AppColors.onDark,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'Booking barbershop tanpa antre.',
-                    style: AppTextTheme.caption.copyWith(
-                      color: AppColors.onDark.withValues(alpha: 0.75),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'Booking barbershop tanpa antre.',
+                      style: AppTextTheme.caption.copyWith(
+                        color: AppColors.onDark.withValues(alpha: 0.75),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-            Transform.translate(
-              offset: const Offset(0, -AppRadius.sheetLg),
+
+            Padding(
+              padding: const EdgeInsets.only(
+                top: LoginPage.heroTinggi - AppRadius.sheetLg,
+              ),
               child: Container(
+                width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.screenH,
                   AppSpacing.xl,
@@ -152,7 +165,7 @@ class _LoginPageState extends State<LoginPage> {
                       obscure: true,
                       prefixIcon: Icons.lock_outline,
                     ),
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.xl),
 
                     FadeInButton(
                       label: 'Masuk',
@@ -161,46 +174,15 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: AppSpacing.lg),
 
-                    // pemisah visual; tombol sosial hanya tampilan, belum aktif
-                    Row(
-                      children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm,
-                          ),
-                          child: Text(
-                            'atau lanjut dengan',
-                            style: AppTextTheme.caption,
-                          ),
-                        ),
-                        const Expanded(child: Divider()),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    const Row(
-                      children: [
-                        Expanded(
-                          child: _TombolSosial(
-                            icon: Icons.g_mobiledata,
-                            label: 'Google',
-                          ),
-                        ),
-                        SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: _TombolSosial(
-                            icon: Icons.apple,
-                            label: 'Apple',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Belum punya akun?', style: AppTextTheme.caption),
+                        Flexible(
+                          child: Text(
+                            'Belum punya akun?',
+                            style: AppTextTheme.caption,
+                          ),
+                        ),
                         TextButton(
                           onPressed: isLoading
                               ? null
@@ -219,37 +201,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Tombol sosial nonaktif — hanya untuk kelengkapan visual.
-///
-/// Login sosial belum ada di backend, jadi tombol sengaja tidak melakukan
-/// apa pun dan tidak bisa ditekan.
-class _TombolSosial extends StatelessWidget {
-  const _TombolSosial({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.button),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 22, color: AppColors.muted),
-          const SizedBox(width: AppSpacing.xs),
-          Text(label, style: AppTextTheme.label.copyWith(color: AppColors.muted)),
-        ],
       ),
     );
   }
