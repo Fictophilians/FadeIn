@@ -149,6 +149,9 @@ void main() {
   testWidgets('tautan Daftar membuka /register', (tester) async {
     await tester.pumpWidget(_app(const LoginPage()));
 
+    // layar uji hanya 600px; tombol Daftar ada di bawah, gulir dulu
+    await tester.ensureVisible(find.text('Daftar'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Daftar'));
     await tester.pumpAndSettle();
 

@@ -38,8 +38,31 @@ abstract final class AppRadius {
   /// Bottom sheet / dialog (atas saja).
   static const sheet = 20.0;
 
+  /// Sheet besar yang naik dari bawah (login, register).
+  static const sheetLg = 28.0;
+
+  /// Kartu foto besar (hero, banner).
+  static const xl = 24.0;
+
   /// Chip / badge.
   static const pill = 999.0;
+}
+
+/// Gradien bersama. Jangan tulis `LinearGradient` langsung di layar.
+abstract final class AppGradient {
+  /// Latar kartu promo / ajakan di beranda.
+  static const promo = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [AppColors.inkSoft, AppColors.ink],
+  );
+
+  /// Sampul kartu layanan tanpa foto.
+  static const cardCover = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [AppColors.goldSoft, AppColors.bg],
+  );
 }
 
 /// Tipografi — `docs/DESIGN.md` bagian 3.
