@@ -5,6 +5,7 @@ import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/User.dart';
 import 'package:fadein_app/service/api.dart';
 import 'package:fadein_app/utils/pesan.dart';
+import 'package:fadein_app/widgets/BarisInfo.dart';
 import 'package:fadein_app/widgets/ConfirmDialog.dart';
 import 'package:fadein_app/widgets/EmptyState.dart';
 import 'package:fadein_app/widgets/FadeInButton.dart';
@@ -19,8 +20,8 @@ import 'package:image_picker/image_picker.dart';
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
-  /// Batas ukuran file yang diterima backend (5 MB di multer).
-  static const batasUkuran = 5 * 1024 * 1024;
+  /// Batas ukuran berkas yang diterima backend (`multer` 2 MB).
+  static const batasUkuran = 2 * 1024 * 1024;
 
   @override
   State<ProfilePage> createState() => ProfilePageState();
@@ -83,7 +84,7 @@ class ProfilePageState extends State<ProfilePage> {
     if (!mounted) return;
 
     if (bytes.length > ProfilePage.batasUkuran) {
-      Pesan.gagal(context, 'Ukuran foto maksimal 5 MB.');
+      Pesan.gagal(context, 'Ukuran foto maksimal 2 MB.');
       return;
     }
 
@@ -233,20 +234,10 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _barisInfo(String label, String nilai) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 72,
-          child: Text(label, style: AppTextTheme.caption),
-        ),
-        Expanded(
-          child: Text(
-            nilai,
-            style: AppTextTheme.body.copyWith(fontWeight: FontWeight.w500),
-          ),
-        ),
-      ],
+    return BarisInfo(
+      label: label,
+      nilai: nilai,
+      style: AppTextTheme.body.copyWith(fontWeight: FontWeight.w500),
     );
   }
 }

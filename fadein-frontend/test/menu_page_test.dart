@@ -96,10 +96,44 @@ void main() {
       );
       expect(find.text('Profil', skipOffstage: false), findsWidgets);
     });
+
+    testWidgets('FAB Buat Booking hanya di tab Beranda', (tester) async {
+      Apiservice.setTokenCache('token');
+      Apiservice.setUserCache({'id': 2, 'role': 'customer'});
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: const MenuPage(),
+          routes: {
+            '/booking': (_) => const Scaffold(body: Text('HALAMAN BOOKING')),
+          },
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Buat Booking'), findsOneWidget);
+
+      // tab Pesanan punya jalurnya sendiri → ajakan booking disembunyikan
+      await tester.tap(find.text('Pesanan'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.text('Buat Booking'), findsNothing);
+
+      await tester.tap(find.text('Beranda'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.text('Buat Booking'), findsOneWidget);
+
+      await tester.tap(find.text('Buat Booking'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('HALAMAN BOOKING'), findsOneWidget);
+    });
   });
 
-  group('MenuPage admin', () {
-    testWidgets('menampilkan empat tab admin', (tester) async {
+  group('MenuPage admin', () {    testWidgets('menampilkan empat tab admin', (tester) async {
       Apiservice.setTokenCache('token');
       Apiservice.setUserCache({'id': 1, 'role': 'admin'});
 
@@ -114,6 +148,9 @@ void main() {
       expect(find.text('Booking'), findsOneWidget);
       expect(find.text('Profil'), findsOneWidget);
       expect(find.text('Beranda'), findsNothing);
+
+      // admin mengelola data, bukan memesan
+      expect(find.text('Buat Booking'), findsNothing);
     });
   });
 

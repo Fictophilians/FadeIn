@@ -46,6 +46,22 @@ String formatHari(String tanggal) {
   return DateFormat('EEEE', 'id_ID').format(date);
 }
 
+/// Tanggal hari ini menurut WIB, `YYYY-MM-DD`.
+///
+/// Backend memakai WIB untuk menolak tanggal/jam lampau, jadi klien memakai
+/// acuan yang sama walaupun perangkat berada di zona waktu lain.
+String tanggalHariIniWib() {
+  final wib = DateTime.now().toUtc().add(const Duration(hours: 7));
+  return wib.toIso8601String().substring(0, 10);
+}
+
+/// Jam sekarang menurut WIB, `HH:mm`.
+String jamSekarangWib() {
+  final wib = DateTime.now().toUtc().add(const Duration(hours: 7));
+  return '${wib.hour.toString().padLeft(2, '0')}:'
+      '${wib.minute.toString().padLeft(2, '0')}';
+}
+
 /// Format jam dari `HH:mm` menjadi `HH.mm`.
 ///
 /// `formatJam('14:30')` → `14.30`

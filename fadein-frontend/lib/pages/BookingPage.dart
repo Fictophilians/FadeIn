@@ -7,6 +7,7 @@ import 'package:fadein_app/service/api.dart';
 import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/utils/pesan.dart';
 import 'package:fadein_app/widgets/BarberCard.dart';
+import 'package:fadein_app/widgets/BarisInfo.dart';
 import 'package:fadein_app/widgets/EmptyState.dart';
 import 'package:fadein_app/widgets/FadeInButton.dart';
 import 'package:fadein_app/widgets/SectionTitle.dart';
@@ -31,6 +32,24 @@ class BookingPage extends StatefulWidget {
 
   /// Batas hari ke depan yang boleh dipilih.
   static const batasHari = 30;
+
+  /// Aturan slot, dipisah dari state supaya bisa diuji tanpa menunggu jam asli.
+  ///
+  /// Slot masa depan selalu boleh; slot hari ini hanya boleh bila jamnya
+  /// masih di depan. Tanggal `null` (belum dipilih) berarti belum boleh.
+  @visibleForTesting
+  static bool slotBolehDipakai({
+    required bool tersedia,
+    required String? tanggal,
+    required String hariIni,
+    required String jam,
+    required String jamSekarang,
+  }) {
+    if (!tersedia || tanggal == null) return false;
+    if (tanggal != hariIni) return true;
+
+    return jam.compareTo(jamSekarang) > 0;
+  }
 
   @override
   State<BookingPage> createState() => _BookingPageState();
@@ -109,12 +128,13 @@ class _BookingPageState extends State<BookingPage> {
   }
 
   /// Tanggal hari ini menurut WIB, tanpa komponen jam.
-  ///
-  /// Backend memakai WIB untuk menolak tanggal lampau, jadi klien harus
-  /// memakai acuan yang sama walau perangkat berada di zona waktu lain.
   static DateTime _tanggalHariIni() {
-    final wib = DateTime.now().toUtc().add(const Duration(hours: 7));
-    return DateTime(wib.year, wib.month, wib.day);
+    final hariIni = tanggalHariIniWib().split('-');
+    return DateTime(
+      int.parse(hariIni[0]),
+      int.parse(hariIni[1]),
+      int.parse(hariIni[2]),
+    );
   }
 
   static String _keStringTanggal(DateTime t) {
@@ -155,25 +175,34 @@ class _BookingPageState extends State<BookingPage> {
       });
     } on ApiException catch (e) {
       if (!mounted) return;
-      setState(() => isLoadingSlot = false);
+      // daftar lama dibuang: kalau tidak, jam dari tanggal sebelumnya tetap
+      // bisa dipilih walaupun pengambilan slot untuk tanggal ini gagal
+      setState(() {
+        slots = [];
+        isLoadingSlot = false;
+      });
       Pesan.gagal(context, e.message);
     } catch (e) {
       if (!mounted) return;
-      setState(() => isLoadingSlot = false);
+      setState(() {
+        slots = [];
+        isLoadingSlot = false;
+      });
       Pesan.gagal(context, '$e');
     }
   }
 
   /// Slot hari ini yang jamnya sudah lewat tidak boleh dipilih.
   bool _slotBolehDipakai(Slot slot) {
-    if (!slot.available) return false;
-    if (pilihanTanggal == null) return false;
-    if (pilihanTanggal != _tanggalHariIni()) return true;
-
-    final wib = DateTime.now().toUtc().add(const Duration(hours: 7));
-    final sekarang = '${wib.hour.toString().padLeft(2, '0')}:'
-        '${wib.minute.toString().padLeft(2, '0')}';
-    return slot.time.compareTo(sekarang) > 0;
+    return BookingPage.slotBolehDipakai(
+      tersedia: slot.available,
+      tanggal: pilihanTanggal == null
+          ? null
+          : _keStringTanggal(pilihanTanggal!),
+      hariIni: tanggalHariIniWib(),
+      jam: slot.time,
+      jamSekarang: jamSekarangWib(),
+    );
   }
 
   // ---------- navigasi langkah ----------
@@ -228,7 +257,7 @@ class _BookingPageState extends State<BookingPage> {
       if (!mounted) return;
 
       // dialog singkat dulu supaya pengguna sadar booking tersimpan,
-      // baru pindah ke tab Pesanan
+      // baru kembali ke tab Pesanan lewat MenuPage
       await showDialog<void>(
         context: context,
         builder: (_) => AlertDialog(
@@ -248,7 +277,8 @@ class _BookingPageState extends State<BookingPage> {
       );
 
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/pesanan');
+      // `true` = booking tersimpan; MenuPage yang memindahkan tab
+      Navigator.pop(context, true);
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => isMenyimpan = false);
@@ -540,22 +570,13 @@ class _BookingPageState extends State<BookingPage> {
   }
 
   Widget _barisRingkasan(String label, String nilai, {bool tebal = false}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 84,
-          child: Text(label, style: AppTextTheme.caption),
-        ),
-        Expanded(
-          child: Text(
-            nilai,
-            style: tebal
-                ? AppTextTheme.price
-                : AppTextTheme.body.copyWith(fontWeight: FontWeight.w500),
-          ),
-        ),
-      ],
+    return BarisInfo(
+      label: label,
+      nilai: nilai,
+      lebarLabel: 84,
+      style: tebal
+          ? AppTextTheme.price
+          : AppTextTheme.body.copyWith(fontWeight: FontWeight.w500),
     );
   }
 

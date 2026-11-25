@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/Barber.dart';
+import 'package:fadein_app/pages/ProfilePage.dart';
 import 'package:fadein_app/service/api.dart';
 import 'package:fadein_app/utils/pesan.dart';
+import 'package:fadein_app/widgets/AksiKecil.dart';
 import 'package:fadein_app/widgets/ConfirmDialog.dart';
 import 'package:fadein_app/widgets/EmptyState.dart';
 import 'package:fadein_app/widgets/FadeInButton.dart';
@@ -240,13 +242,13 @@ class _BarisBarber extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xs),
                 Row(
                   children: [
-                    _AksiKecil(
+                    AksiKecil(
                       icon: Icons.edit_outlined,
                       label: 'Edit',
                       onTap: onEdit,
                     ),
                     const SizedBox(width: AppSpacing.xs),
-                    _AksiKecil(
+                    AksiKecil(
                       icon: Icons.delete_outline,
                       label: 'Hapus',
                       danger: true,
@@ -258,55 +260,6 @@ class _BarisBarber extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Tombol teks kecil untuk aksi per baris.
-class _AksiKecil extends StatelessWidget {
-  const _AksiKecil({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.danger = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool danger;
-
-  @override
-  Widget build(BuildContext context) {
-    final warna = danger ? AppColors.danger : AppColors.ink;
-
-    return Semantics(
-      button: true,
-      label: label,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xs,
-            vertical: AppSpacing.xxs,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 16, color: warna),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: AppTextTheme.caption.copyWith(
-                  color: warna,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -360,8 +313,8 @@ class _FormBarberState extends State<_FormBarber> {
 
     if (!mounted) return;
 
-    if (bytes.length > 5 * 1024 * 1024) {
-      Pesan.gagal(context, 'Ukuran foto maksimal 5 MB.');
+    if (bytes.length > ProfilePage.batasUkuran) {
+      Pesan.gagal(context, 'Ukuran foto maksimal 2 MB.');
       return;
     }
 

@@ -5,6 +5,7 @@ import 'package:fadein_app/pages/MenuPage.dart';
 import 'package:fadein_app/pages/RegisterPage.dart';
 import 'package:fadein_app/pages/RuteTerjaga.dart';
 import 'package:fadein_app/pages/SplashPage.dart';
+import 'package:fadein_app/utils/navigator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -26,6 +27,7 @@ class FadeInApp extends StatelessWidget {
     return MaterialApp(
       title: 'FadeIn',
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       theme: AppTheme.light,
 
       // Seluruh teks bawaan Material (date picker, dialog, tombol) ikut
@@ -54,12 +56,6 @@ class FadeInApp extends StatelessWidget {
         '/booking': (_) => const RuteTerjaga(
               role: 'customer',
               child: BookingPage(),
-            ),
-
-        // Setelah booking berhasil, pengguna mendarat di tab Pesanan.
-        '/pesanan': (_) => const RuteTerjaga(
-              role: 'customer',
-              child: MenuPage(initialIndex: 1),
             ),
 
         // Beranda admin: tab Barber · Layanan · Booking · Profil.

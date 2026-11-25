@@ -4,6 +4,7 @@ import 'package:fadein_app/models/Service.dart';
 import 'package:fadein_app/service/api.dart';
 import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/utils/pesan.dart';
+import 'package:fadein_app/widgets/AksiKecil.dart';
 import 'package:fadein_app/widgets/ConfirmDialog.dart';
 import 'package:fadein_app/widgets/EmptyState.dart';
 import 'package:fadein_app/widgets/FadeInButton.dart';
@@ -225,13 +226,13 @@ class _BarisLayanan extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xs),
                 Row(
                   children: [
-                    _AksiKecil(
+                    AksiKecil(
                       icon: Icons.edit_outlined,
                       label: 'Edit',
                       onTap: onEdit,
                     ),
                     const SizedBox(width: AppSpacing.xs),
-                    _AksiKecil(
+                    AksiKecil(
                       icon: Icons.delete_outline,
                       label: 'Hapus',
                       danger: true,
@@ -243,54 +244,6 @@ class _BarisLayanan extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _AksiKecil extends StatelessWidget {
-  const _AksiKecil({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.danger = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool danger;
-
-  @override
-  Widget build(BuildContext context) {
-    final warna = danger ? AppColors.danger : AppColors.ink;
-
-    return Semantics(
-      button: true,
-      label: label,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xs,
-            vertical: AppSpacing.xxs,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 16, color: warna),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: AppTextTheme.caption.copyWith(
-                  color: warna,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -341,13 +294,13 @@ class _FormLayananState extends State<_FormLayanan> {
 
     setState(() => _menyimpan = true);
 
-    final data = {
-      'name': _nama.text.trim(),
-      'price': int.parse(_harga.text.trim()),
-      'duration': int.parse(_durasi.text.trim()),
-    };
-
     try {
+      final data = {
+        'name': _nama.text.trim(),
+        'price': int.parse(_harga.text.trim()),
+        'duration': int.parse(_durasi.text.trim()),
+      };
+
       if (_modeEdit) {
         await Apiservice.put('/services/${widget.service!.id}', data);
       } else {
@@ -356,6 +309,12 @@ class _FormLayananState extends State<_FormLayanan> {
 
       if (!mounted) return;
       Navigator.pop(context, true);
+    } on FormatException {
+      // jaring pengaman: validator sudah menahan, tapi kalau lolos jangan
+      // sampai layar crash tanpa pesan
+      if (!mounted) return;
+      setState(() => _menyimpan = false);
+      Pesan.gagal(context, 'Harga dan durasi harus berupa angka.');
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _menyimpan = false);

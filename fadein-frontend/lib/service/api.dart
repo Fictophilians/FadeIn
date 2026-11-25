@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:fadein_app/utils/navigator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -248,7 +249,22 @@ class Apiservice {
   static Future<dynamic> _safeRequest(Future<dynamic> Function() action) async {
     try {
       return await action();
-    } on ApiException {
+    } on ApiException catch (e) {
+      // token kedaluwarsa: bersihkan sesi lalu kembali ke layar masuk,
+      // supaya pengguna tidak buntu di layar "Gagal memuat data"
+      if (e.isUnauthorized) {
+        try {
+          if (await getToken() != null) {
+            await logout();
+            navigatorKey.currentState?.pushNamedAndRemoveUntil(
+              '/login',
+              (_) => false,
+            );
+          }
+        } catch (_) {
+          // pembersihan sesi tidak boleh menutupi error 401 aslinya
+        }
+      }
       rethrow;
     } on TimeoutException {
       throw ApiException('Waktu tunggu habis. Server tidak merespons.');

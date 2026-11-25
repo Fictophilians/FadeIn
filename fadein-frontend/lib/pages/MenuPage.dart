@@ -1,12 +1,12 @@
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
-import 'package:fadein_app/models/User.dart';
 import 'package:fadein_app/pages/AdminBarberPage.dart';
 import 'package:fadein_app/pages/AdminBookingPage.dart';
 import 'package:fadein_app/pages/AdminServicePage.dart';
 import 'package:fadein_app/pages/HomePage.dart';
 import 'package:fadein_app/pages/MyBookingPage.dart';
 import 'package:fadein_app/pages/ProfilePage.dart';
+import 'package:fadein_app/models/User.dart';
 import 'package:flutter/material.dart';
 
 /// Kerangka utama aplikasi — `docs/DESIGN.md` 6.
@@ -22,50 +22,25 @@ import 'package:flutter/material.dart';
 /// admin    : Barber · Layanan · Booking · Profil
 /// ```
 class MenuPage extends StatefulWidget {
-  const MenuPage({super.key, this.role = 'customer', this.initialIndex = 0});
+  const MenuPage({super.key, this.role = 'customer'});
 
   /// `customer` atau `admin`.
   final String role;
-
-  /// Tab yang dibuka pertama kali. Dipakai `/pesanan` supaya setelah booking
-  /// berhasil pengguna langsung mendarat di tab Pesanan.
-  final int initialIndex;
 
   @override
   State<MenuPage> createState() => _MenuPageState();
 }
 
 class _MenuPageState extends State<MenuPage> {
-  late int currentIndex = widget.initialIndex;
+  int currentIndex = 0;
 
-  /// Supaya tab Pesanan bisa disegarkan saat dibuka — `IndexedStack` membuat
-  /// layarnya tidak pernah dibangun ulang, jadi booking baru tidak akan
-  /// muncul tanpa dorongan ini.
+  /// `IndexedStack` tidak membangun ulang tab, jadi tab yang datanya bisa
+  /// berubah di tempat lain perlu disegarkan lewat kunci ini.
+  final _kunciBeranda = GlobalKey<HomePageState>();
   final _kunciPesanan = GlobalKey<MyBookingPageState>();
   final _kunciBookingAdmin = GlobalKey<AdminBookingPageState>();
 
   bool get _admin => widget.role == UserRole.admin.value;
-
-  late final List<Widget> pages = _admin
-      ? [
-          const AdminBarberPage(),
-          const AdminServicePage(),
-          AdminBookingPage(key: _kunciBookingAdmin),
-          const ProfilePage(),
-        ]
-      : [
-          HomePage(onBukaPesanan: () => _pilih(1)),
-          MyBookingPage(key: _kunciPesanan),
-          const ProfilePage(),
-        ];
-
-  void _pilih(int i) {
-    setState(() => currentIndex = i);
-
-    // muat ulang data tab yang butuh data segar
-    if (_admin && i == 2) _kunciBookingAdmin.currentState?.muatData();
-    if (!_admin && i == 1) _kunciPesanan.currentState?.muatData();
-  }
 
   static const _labelCustomer = ['Beranda', 'Pesanan', 'Profil'];
   static const _ikonCustomer = [
@@ -93,16 +68,74 @@ class _MenuPageState extends State<MenuPage> {
     Icons.person_rounded,
   ];
 
+  late final List<Widget> pages = _admin
+      ? [
+          const AdminBarberPage(),
+          const AdminServicePage(),
+          AdminBookingPage(key: _kunciBookingAdmin),
+          const ProfilePage(),
+        ]
+      : [
+          HomePage(
+            key: _kunciBeranda,
+            onBuatBooking: bukaBooking,
+            onBukaPesanan: () => _pilih(1),
+          ),
+          MyBookingPage(key: _kunciPesanan, onBuatBooking: bukaBooking),
+          const ProfilePage(),
+        ];
+
   List<String> get _label => _admin ? _labelAdmin : _labelCustomer;
   List<IconData> get _ikon => _admin ? _ikonAdmin : _ikonCustomer;
   List<IconData> get _ikonAktif =>
       _admin ? _ikonAdminAktif : _ikonCustomerAktif;
+
+  void _pilih(int i) {
+    setState(() => currentIndex = i);
+
+    // muat ulang data tab yang butuh data segar
+    if (_admin && i == 2) _kunciBookingAdmin.currentState?.muatData();
+    if (!_admin && i == 1) _kunciPesanan.currentState?.muatData();
+  }
+
+  /// Satu pintu masuk form booking untuk customer.
+  ///
+  /// Setelah tersimpan, tab Pesanan langsung dibuka; tanpa itu pengguna
+  /// mendarat kembali di beranda tanpa bukti bookingnya tercatat.
+  Future<bool?> bukaBooking() async {
+    if (!mounted) return null;
+
+    // tanpa `<bool>`: `routes:` di main.dart menghasilkan route `dynamic`,
+    // dan `pushNamed<bool>` akan gagal cast saat runtime
+    final hasil = await Navigator.pushNamed(context, '/booking');
+    final tersimpan = hasil == true;
+
+    if (tersimpan && mounted) {
+      _kunciBeranda.currentState?.muatData();
+      _pilih(1);
+    }
+
+    return tersimpan;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: IndexedStack(index: currentIndex, children: pages),
+
+      // Ajakan booking paling terlihat hanya di tab Beranda. Tab lain sudah
+      // punya jalurnya sendiri (Pesanan: daftar, Profil: tidak perlu).
+      floatingActionButton: !_admin && currentIndex == 0
+          ? FloatingActionButton.extended(
+              onPressed: bukaBooking,
+              backgroundColor: AppColors.ink,
+              foregroundColor: AppColors.onDark,
+              icon: const Icon(Icons.add),
+              label: const Text('Buat Booking'),
+            )
+          : null,
+
       bottomNavigationBar: _NavigasiBawah(
         index: currentIndex,
         label: _label,

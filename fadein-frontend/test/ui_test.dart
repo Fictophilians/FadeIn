@@ -73,7 +73,10 @@ const _booking = {
 };
 
 /// Backend palsu untuk semua endpoint yang dipakai layar baru.
-http.Client _client({List<dynamic> bookings = const []}) {
+///
+/// [statusBooking] selain 200 membuat POST `/bookings` ditolak — dipakai
+/// menguji penanganan 409 (slot direbut orang lain).
+http.Client _client({List<dynamic> bookings = const [], int statusBooking = 200}) {
   return MockClient((request) async {
     final path = request.url.path;
 
@@ -108,6 +111,12 @@ http.Client _client({List<dynamic> bookings = const []}) {
       });
     }
     if (path.endsWith('/bookings')) {
+      if (request.method == 'POST' && statusBooking != 200) {
+        return _json(
+          {'message': 'Jadwal tersebut sudah dipesan!'},
+          statusBooking,
+        );
+      }
       return _json({'message': 'ok', 'data': bookings});
     }
 
@@ -227,6 +236,119 @@ void main() {
       // 09:00 tersedia di server; bisa ikut nonaktif kalau hari ini sudah lewat
       expect(chip[0].time, '09:00');
     });
+
+    test('slot hari ini yang jamnya sudah lewat ditolak', () {
+      const tersedia = true;
+
+      // jam sekarang 14:30 → 15:00 masih boleh, 14:00 dan 14:30 tidak
+      expect(
+        BookingPage.slotBolehDipakai(
+          tersedia: tersedia,
+          tanggal: '2026-12-01',
+          hariIni: '2026-12-01',
+          jam: '15:00',
+          jamSekarang: '14:30',
+        ),
+        isTrue,
+      );
+      expect(
+        BookingPage.slotBolehDipakai(
+          tersedia: tersedia,
+          tanggal: '2026-12-01',
+          hariIni: '2026-12-01',
+          jam: '14:00',
+          jamSekarang: '14:30',
+        ),
+        isFalse,
+      );
+      expect(
+        BookingPage.slotBolehDipakai(
+          tersedia: tersedia,
+          tanggal: '2026-12-01',
+          hariIni: '2026-12-01',
+          jam: '14:30',
+          jamSekarang: '14:30',
+        ),
+        isFalse,
+      );
+
+      // tanggal lain: jam berapa pun boleh
+      expect(
+        BookingPage.slotBolehDipakai(
+          tersedia: tersedia,
+          tanggal: '2026-12-02',
+          hariIni: '2026-12-01',
+          jam: '09:00',
+          jamSekarang: '23:00',
+        ),
+        isTrue,
+      );
+
+      // slot terisi atau tanggal belum dipilih: selalu ditolak
+      expect(
+        BookingPage.slotBolehDipakai(
+          tersedia: false,
+          tanggal: '2026-12-02',
+          hariIni: '2026-12-01',
+          jam: '09:00',
+          jamSekarang: '08:00',
+        ),
+        isFalse,
+      );
+      expect(
+        BookingPage.slotBolehDipakai(
+          tersedia: tersedia,
+          tanggal: null,
+          hariIni: '2026-12-01',
+          jam: '09:00',
+          jamSekarang: '08:00',
+        ),
+        isFalse,
+      );
+    });
+
+    testWidgets('409 mengembalikan ke langkah jam', (tester) async {
+      _layarHp(tester);
+      Apiservice.client = _client(statusBooking: 409);
+
+      await tester.pumpWidget(_app(const BookingPage()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Haircut'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lanjut'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pilih'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lanjut'));
+      await tester.pumpAndSettle();
+
+      // pilih besok supaya jam 09:00 pasti belum lewat
+      final kartuTanggal = find.byWidgetPredicate(
+        (w) => w.runtimeType.toString() == '_KartuTanggal',
+      );
+      await tester.tap(kartuTanggal.at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lanjut'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('09:00'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lanjut'));
+      await tester.pumpAndSettle();
+      expect(find.text('LANGKAH 5/5'), findsOneWidget);
+
+      await tester.tap(find.text('Konfirmasi Booking'));
+      await tester.pumpAndSettle();
+
+      // kembali ke langkah jam, bukan menutup form
+      expect(find.text('LANGKAH 4/5'), findsOneWidget);
+      expect(
+        find.text('Jadwal tersebut sudah dipesan, silakan pilih jam lain!'),
+        findsOneWidget,
+      );
+    });
   });
 
   group('MyBookingPage', () {
@@ -252,7 +374,7 @@ void main() {
       await tester.drag(find.text('Semua'), const Offset(-260, 0));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Completed'));
+      await tester.tap(find.text('Selesai'));
       await tester.pumpAndSettle();
 
       expect(find.byType(BookingCard), findsNothing);

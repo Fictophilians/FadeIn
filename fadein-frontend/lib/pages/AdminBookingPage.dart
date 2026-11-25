@@ -5,8 +5,10 @@ import 'package:fadein_app/models/BookingStatus.dart';
 import 'package:fadein_app/service/api.dart';
 import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/utils/pesan.dart';
+import 'package:fadein_app/widgets/BarisInfo.dart';
 import 'package:fadein_app/widgets/ConfirmDialog.dart';
 import 'package:fadein_app/widgets/EmptyState.dart';
+import 'package:fadein_app/widgets/FilterStatus.dart';
 import 'package:fadein_app/widgets/StatusBadge.dart';
 import 'package:flutter/material.dart';
 
@@ -169,7 +171,7 @@ class AdminBookingPageState extends State<AdminBookingPage> {
       onRefresh: muatData,
       child: Column(
         children: [
-          _BarisFilter(
+          FilterStatus(
             aktif: filter,
             onPilih: (f) => setState(() => filter = f),
           ),
@@ -277,11 +279,11 @@ class _KartuBookingAdmin extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           const Divider(),
           const SizedBox(height: AppSpacing.sm),
-          _baris('Customer', booking.customerName),
+          BarisInfo(label: 'Customer', nilai: booking.customerName, lebarLabel: 76),
           const SizedBox(height: AppSpacing.xxs),
-          _baris('Barber', booking.barberName),
+          BarisInfo(label: 'Barber', nilai: booking.barberName, lebarLabel: 76),
           const SizedBox(height: AppSpacing.xxs),
-          _baris('Layanan', booking.serviceName),
+          BarisInfo(label: 'Layanan', nilai: booking.serviceName, lebarLabel: 76),
           const SizedBox(height: AppSpacing.sm),
           Text(formatRupiah(booking.price), style: AppTextTheme.price),
           if (status.isActive) ...[
@@ -321,21 +323,6 @@ class _KartuBookingAdmin extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-
-  Widget _baris(String label, String nilai) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 76,
-          child: Text(label, style: AppTextTheme.caption),
-        ),
-        Expanded(
-          child: Text(nilai, style: AppTextTheme.body),
-        ),
-      ],
     );
   }
 }
@@ -395,94 +382,6 @@ class _TombolKecil extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Deretan chip filter status.
-class _BarisFilter extends StatelessWidget {
-  const _BarisFilter({required this.aktif, required this.onPilih});
-
-  final BookingStatus? aktif;
-  final ValueChanged<BookingStatus?> onPilih;
-
-  static const _label = {
-    null: 'Semua',
-    BookingStatus.pending: 'Pending',
-    BookingStatus.confirmed: 'Confirmed',
-    BookingStatus.completed: 'Completed',
-    BookingStatus.cancelled: 'Cancelled',
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.screenH,
-          vertical: AppSpacing.sm,
-        ),
-        children: [
-          for (final entry in _label.entries)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.xs),
-              child: _Chip(
-                label: entry.value,
-                selected: aktif == entry.key,
-                onTap: () => onPilih(entry.key),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  const _Chip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      child: Material(
-        color: selected ? AppColors.ink : AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              border: Border.all(
-                color: selected ? AppColors.ink : AppColors.border,
-              ),
-            ),
-            child: Text(
-              label,
-              style: AppTextTheme.caption.copyWith(
-                fontWeight: FontWeight.w600,
-                color: selected ? AppColors.onDark : AppColors.ink,
               ),
             ),
           ),

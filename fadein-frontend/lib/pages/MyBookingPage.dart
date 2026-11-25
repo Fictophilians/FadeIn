@@ -7,6 +7,7 @@ import 'package:fadein_app/utils/pesan.dart';
 import 'package:fadein_app/widgets/BookingCard.dart';
 import 'package:fadein_app/widgets/ConfirmDialog.dart';
 import 'package:fadein_app/widgets/EmptyState.dart';
+import 'package:fadein_app/widgets/FilterStatus.dart';
 import 'package:flutter/material.dart';
 
 /// Tab Pesanan — `docs/DESIGN.md` 7 nomor 5.
@@ -15,7 +16,12 @@ import 'package:flutter/material.dart';
 /// untuk `pending`/`confirmed`, lewat [ConfirmDialog], lalu daftar disegarkan
 /// dari server supaya status yang tampil selalu yang tersimpan.
 class MyBookingPage extends StatefulWidget {
-  const MyBookingPage({super.key});
+  const MyBookingPage({super.key, this.onBuatBooking});
+
+  /// Dipanggil tombol "Booking sekarang" pada daftar kosong. `MenuPage` bisa
+  /// mengarahkannya ke tab Beranda, sedangkan pemakaian mandiri cukup push
+  /// route `/booking`.
+  final Future<bool?> Function()? onBuatBooking;
 
   @override
   State<MyBookingPage> createState() => MyBookingPageState();
@@ -72,6 +78,15 @@ class MyBookingPageState extends State<MyBookingPage> {
   List<Booking> get tampil {
     if (filter == null) return bookings;
     return bookings.where((b) => b.status == filter).toList();
+  }
+
+  /// Buka form booking; kalau tersimpan, daftar ini ikut disegarkan.
+  Future<void> _buatBooking() async {
+    final tersimpan = widget.onBuatBooking != null
+        ? await widget.onBuatBooking!()
+        : await Navigator.pushNamed(context, '/booking') as bool?;
+
+    if (tersimpan == true && mounted) await muatData();
   }
 
   Future<void> batalkan(Booking booking) async {
@@ -131,7 +146,7 @@ class MyBookingPageState extends State<MyBookingPage> {
       onRefresh: muatData,
       child: Column(
         children: [
-          _BarisFilter(
+          FilterStatus(
             aktif: filter,
             onPilih: (f) => setState(() => filter = f),
           ),
@@ -151,7 +166,7 @@ class MyBookingPageState extends State<MyBookingPage> {
             title: 'Belum ada pesanan',
             message: 'Booking yang kamu buat akan muncul di sini.',
             actionLabel: 'Booking sekarang',
-            onAction: () => Navigator.pushNamed(context, '/booking'),
+            onAction: _buatBooking,
           ),
         ],
       );
@@ -192,94 +207,6 @@ class MyBookingPageState extends State<MyBookingPage> {
               : null,
         );
       },
-    );
-  }
-}
-
-/// Deretan chip filter status.
-class _BarisFilter extends StatelessWidget {
-  const _BarisFilter({required this.aktif, required this.onPilih});
-
-  final BookingStatus? aktif;
-  final ValueChanged<BookingStatus?> onPilih;
-
-  static const _label = {
-    null: 'Semua',
-    BookingStatus.pending: 'Pending',
-    BookingStatus.confirmed: 'Confirmed',
-    BookingStatus.completed: 'Completed',
-    BookingStatus.cancelled: 'Cancelled',
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.screenH,
-          vertical: AppSpacing.sm,
-        ),
-        children: [
-          for (final entry in _label.entries)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.xs),
-              child: _Chip(
-                label: entry.value,
-                selected: aktif == entry.key,
-                onTap: () => onPilih(entry.key),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  const _Chip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      child: Material(
-        color: selected ? AppColors.ink : AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              border: Border.all(
-                color: selected ? AppColors.ink : AppColors.border,
-              ),
-            ),
-            child: Text(
-              label,
-              style: AppTextTheme.caption.copyWith(
-                fontWeight: FontWeight.w600,
-                color: selected ? AppColors.onDark : AppColors.ink,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

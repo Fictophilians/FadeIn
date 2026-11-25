@@ -21,21 +21,26 @@ import 'package:flutter/material.dart';
 /// Hanya memuat `/services` dan `/barbers`. Booking terdekat dimuat terpisah
 /// dan kegagalannya tidak menjatuhkan seluruh beranda.
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, this.onBukaPesanan});
+  const HomePage({super.key, this.onBuatBooking, this.onBukaPesanan});
+
+  /// Membuka form booking. `MenuPage` mengisinya supaya setelah tersimpan
+  /// tab langsung pindah ke Pesanan tanpa menumpuk layar baru.
+  final Future<bool?> Function()? onBuatBooking;
 
   /// Dipanggil saat kartu jadwal ditekan. `MenuPage` mengisinya dengan
   /// perpindahan ke tab Pesanan supaya tidak menumpuk layar baru.
   final VoidCallback? onBukaPesanan;
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> {
   List<Service> services = [];
   List<Barber> barbers = [];
   Booking? upcoming;
   String namaUser = '';
+  String? fotoUser;
 
   bool isLoading = true;
   String? error;
@@ -63,6 +68,7 @@ class _HomePageState extends State<HomePage> {
 
       setState(() {
         namaUser = '${user?['name'] ?? ''}'.split(' ').first;
+        fotoUser = user?['photo'] as String?;
         services = (hasil[0] as List)
             .map((e) => Service.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
@@ -97,11 +103,29 @@ class _HomePageState extends State<HomePage> {
           .where((b) => b.status.canCancel)
           .toList();
 
+      // backend mengurutkan terbaru dulu, jadi yang paling dekat harus dicari
+      // manual. Booking yang tanggalnya sudah lewat tidak ditampilkan.
+      final hariIni = tanggalHariIniWib();
+      Booking? terdekat;
+      for (final booking in daftar) {
+        if (booking.bookingDate.compareTo(hariIni) < 0) continue;
+        if (terdekat == null || _lebihDulu(booking, terdekat)) {
+          terdekat = booking;
+        }
+      }
+
       if (!mounted) return;
-      setState(() => upcoming = daftar.isEmpty ? null : daftar.first);
+      setState(() => upcoming = terdekat);
     } catch (_) {
       // diamkan: kartu jadwal hanya pelengkap
     }
+  }
+
+  /// `true` bila [a] jatuh sebelum [b].
+  static bool _lebihDulu(Booking a, Booking b) {
+    final tanggal = a.bookingDate.compareTo(b.bookingDate);
+    if (tanggal != 0) return tanggal < 0;
+    return a.bookingTime.compareTo(b.bookingTime) < 0;
   }
 
   void keBooking() {
@@ -109,7 +133,12 @@ class _HomePageState extends State<HomePage> {
       Pesan.gagal(context, 'Data layanan atau barber masih kosong!');
       return;
     }
-    Navigator.pushNamed(context, '/booking');
+
+    if (widget.onBuatBooking != null) {
+      widget.onBuatBooking!();
+    } else {
+      Navigator.pushNamed(context, '/booking');
+    }
   }
 
   @override
@@ -139,6 +168,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           _BlokAtas(
             nama: namaUser.isEmpty ? 'Kak' : namaUser,
+            foto: fotoUser,
             upcoming: upcoming,
             onBellTap: () => Pesan.sukses(context, 'Belum ada notifikasi.'),
             onUpcomingTap: () => widget.onBukaPesanan?.call(),
@@ -217,13 +247,15 @@ class _HomePageState extends State<HomePage> {
                     name: barber.name,
                     description: barber.description,
                     photoUrl: barber.photo,
-                    onSelect: keBooking,
+                    // hanya pajangan: pemilihan barber terjadi di form booking
+                    onSelect: null,
                   );
                 },
               ),
             ),
 
-          const SizedBox(height: AppSpacing.xxl),
+          // ruang untuk FAB "Buat Booking" supaya kartu terakhir tidak tertutup
+          const SizedBox(height: 96),
         ],
       ),
     );
@@ -231,14 +263,17 @@ class _HomePageState extends State<HomePage> {
 }
 
 /// Blok gelap dengan kartu jadwal di dalamnya, tepat di bawah garis gold.
-class _BlokAtas extends StatelessWidget {  const _BlokAtas({
+class _BlokAtas extends StatelessWidget {
+  const _BlokAtas({
     required this.nama,
+    required this.foto,
     required this.upcoming,
     required this.onBellTap,
     required this.onUpcomingTap,
   });
 
   final String nama;
+  final String? foto;
   final Booking? upcoming;
   final VoidCallback onBellTap;
   final VoidCallback onUpcomingTap;
@@ -247,6 +282,7 @@ class _BlokAtas extends StatelessWidget {  const _BlokAtas({
   Widget build(BuildContext context) {
     return HomeHeader(
       name: nama,
+      photoUrl: foto,
       onBellTap: onBellTap,
       child: upcoming == null
           ? null
