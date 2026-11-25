@@ -227,17 +227,42 @@ class _BookingPageState extends State<BookingPage> {
 
       if (!mounted) return;
 
-      Pesan.sukses(context, 'Booking berhasil dibuat!');
-      Navigator.pushReplacementNamed(context, '/home');
+      // dialog singkat dulu supaya pengguna sadar booking tersimpan,
+      // baru pindah ke tab Pesanan
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Booking berhasil'),
+          content: Text(
+            '${pilihanLayanan!.name} bersama ${pilihanBarber!.name} pada '
+            '${formatTanggal(_keStringTanggal(pilihanTanggal!))} '
+            'pukul ${formatJam(pilihanJam!)} sudah tercatat.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Lihat pesanan'),
+            ),
+          ],
+        ),
+      );
+
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/pesanan');
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => isMenyimpan = false);
-      Pesan.gagal(context, e.message);
 
       // 409 = slot direbut orang lain; kembali ke langkah jam dan segarkan
       if (e.isConflict) {
+        Pesan.gagal(
+          context,
+          'Jadwal tersebut sudah dipesan, silakan pilih jam lain!',
+        );
         setState(() => langkah = 3);
         await muatSlot();
+      } else {
+        Pesan.gagal(context, e.message);
       }
     } catch (e) {
       if (!mounted) return;

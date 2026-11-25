@@ -56,6 +56,12 @@ class FadeInApp extends StatelessWidget {
               child: BookingPage(),
             ),
 
+        // Setelah booking berhasil, pengguna mendarat di tab Pesanan.
+        '/pesanan': (_) => const RuteTerjaga(
+              role: 'customer',
+              child: MenuPage(initialIndex: 1),
+            ),
+
         // Beranda admin: tab Barber · Layanan · Booking · Profil.
         '/admin': (_) => const RuteTerjaga(
               role: 'admin',

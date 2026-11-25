@@ -22,17 +22,21 @@ import 'package:flutter/material.dart';
 /// admin    : Barber · Layanan · Booking · Profil
 /// ```
 class MenuPage extends StatefulWidget {
-  const MenuPage({super.key, this.role = 'customer'});
+  const MenuPage({super.key, this.role = 'customer', this.initialIndex = 0});
 
   /// `customer` atau `admin`.
   final String role;
+
+  /// Tab yang dibuka pertama kali. Dipakai `/pesanan` supaya setelah booking
+  /// berhasil pengguna langsung mendarat di tab Pesanan.
+  final int initialIndex;
 
   @override
   State<MenuPage> createState() => _MenuPageState();
 }
 
 class _MenuPageState extends State<MenuPage> {
-  int currentIndex = 0;
+  late int currentIndex = widget.initialIndex;
 
   /// Supaya tab Pesanan bisa disegarkan saat dibuka — `IndexedStack` membuat
   /// layarnya tidak pernah dibangun ulang, jadi booking baru tidak akan
