@@ -88,119 +88,146 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
-      body: SingleChildScrollView(
-        // Stack: foto hero di belakang, sheet didorong turun supaya tepi
-        // atasnya menimpa foto. Tidak ada ruang mati di bawah seperti pola
-        // `Transform.translate` (parent tidak ikut menyusut).
-        child: Stack(
-          children: [
-            SizedBox(
+      // Stack (bukan SingleChildScrollView luar): sheet dijangkar ke tepi
+      // bawah layar lewat `bottom: 0`, jadi tidak ada pita ivory kosong di
+      // bawah form. Yang bergulir hanya isi sheet.
+      body: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: LoginPage.heroTinggi,
+            child: HeroHeader(
               height: LoginPage.heroTinggi,
-              width: double.infinity,
-              child: HeroHeader(
-                height: LoginPage.heroTinggi,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'TEMUKAN GAYA KAMU',
-                      style: AppTextTheme.display.copyWith(
-                        fontSize: 28,
-                        height: 1.1,
-                        color: AppColors.onDark,
-                      ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'TEMUKAN GAYA KAMU',
+                    style: AppTextTheme.display.copyWith(
+                      fontSize: 28,
+                      height: 1.1,
+                      color: AppColors.onDark,
                     ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'Booking barbershop tanpa antre.',
-                      style: AppTextTheme.caption.copyWith(
-                        color: AppColors.onDark.withValues(alpha: 0.75),
-                      ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    'Booking barbershop tanpa antre.',
+                    style: AppTextTheme.caption.copyWith(
+                      color: AppColors.onDark.withValues(alpha: 0.75),
                     ),
-                  ],
-                ),
+                  ),
+                  // Jarak caption ke sheet: sheet menimpa 28 di tepi bawah
+                  // foto, jadi caption dinaikkan dulu supaya tidak tertutup.
+                  const SizedBox(height: AppSpacing.xxl),
+                ],
               ),
             ),
+          ),
 
-            Padding(
-              padding: const EdgeInsets.only(
-                top: LoginPage.heroTinggi - AppRadius.sheetLg,
+          Positioned(
+            top: LoginPage.heroTinggi - AppRadius.sheetLg,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.sheetLg),
+                ),
               ),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenH,
-                  AppSpacing.xl,
-                  AppSpacing.screenH,
-                  AppSpacing.xxl,
-                ),
-                decoration: const BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(AppRadius.sheetLg),
+              child: LayoutBuilder(
+                builder: (context, batas) => SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screenH,
+                    AppSpacing.xl,
+                    AppSpacing.screenH,
+                    AppSpacing.xxl,
                   ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text('Selamat datang kembali', style: AppTextTheme.section),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      'Masuk untuk melanjutkan booking.',
-                      style: AppTextTheme.caption,
+                  // ConstrainedBox + IntrinsicHeight: kalau isi lebih pendek
+                  // dari layar, `Spacer` mendorong form ke bawah supaya tidak
+                  // menyisakan putih kosong; kalau lebih panjang, Spacer
+                  // menyusut jadi 0 dan isi bergulir seperti biasa.
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: batas.maxHeight -
+                          AppSpacing.xl -
+                          AppSpacing.xxl,
                     ),
-                    const SizedBox(height: AppSpacing.xl),
-
-                    FadeInTextField(
-                      controller: emailController,
-                      label: 'Email',
-                      hint: 'nama@email.com',
-                      keyboardType: TextInputType.emailAddress,
-                      prefixIcon: Icons.mail_outline,
-                    ),
-                    const SizedBox(height: AppSpacing.fieldGap),
-                    FadeInTextField(
-                      controller: passwordController,
-                      label: 'Password',
-                      obscure: true,
-                      prefixIcon: Icons.lock_outline,
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-
-                    FadeInButton(
-                      label: 'Masuk',
-                      isLoading: isLoading,
-                      onPressed: isLoading ? null : login,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'Belum punya akun?',
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'Selamat datang kembali',
+                            style: AppTextTheme.section,
+                          ),
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(
+                            'Masuk untuk melanjutkan booking.',
                             style: AppTextTheme.caption,
                           ),
-                        ),
-                        TextButton(
-                          onPressed: isLoading
-                              ? null
-                              : () => Navigator.pushNamed(context, '/register'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.ink,
-                            textStyle: AppTextTheme.label,
+                          const Spacer(),
+
+                          FadeInTextField(
+                            controller: emailController,
+                            label: 'Email',
+                            hint: 'nama@email.com',
+                            keyboardType: TextInputType.emailAddress,
+                            prefixIcon: Icons.mail_outline,
                           ),
-                          child: const Text('Daftar'),
-                        ),
-                      ],
+                          const SizedBox(height: AppSpacing.fieldGap),
+                          FadeInTextField(
+                            controller: passwordController,
+                            label: 'Password',
+                            obscure: true,
+                            prefixIcon: Icons.lock_outline,
+                          ),
+                          const SizedBox(height: AppSpacing.xl),
+
+                          FadeInButton(
+                            label: 'Masuk',
+                            isLoading: isLoading,
+                            onPressed: isLoading ? null : login,
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  'Belum punya akun?',
+                                  style: AppTextTheme.caption,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: isLoading
+                                    ? null
+                                    : () => Navigator.pushNamed(
+                                        context,
+                                        '/register',
+                                      ),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.ink,
+                                  textStyle: AppTextTheme.label,
+                                ),
+                                child: const Text('Daftar'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
