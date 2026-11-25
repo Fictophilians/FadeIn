@@ -147,30 +147,30 @@ class _LoginPageState extends State<LoginPage> {
                     AppSpacing.screenH,
                     AppSpacing.xxl,
                   ),
-                  // ConstrainedBox + IntrinsicHeight: kalau isi lebih pendek
-                  // dari layar, `Spacer` mendorong form ke bawah supaya tidak
-                  // menyisakan putih kosong; kalau lebih panjang, Spacer
-                  // menyusut jadi 0 dan isi bergulir seperti biasa.
+                  // ConstrainedBox + Center: isi diletakkan di tengah tinggi
+                  // sheet saat ruang cukup; saat layar pendek isi melebihi
+                  // batas dan tetap bisa digulir.
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       minHeight: batas.maxHeight -
                           AppSpacing.xl -
                           AppSpacing.xxl,
                     ),
-                    child: IntrinsicHeight(
+                    child: Center(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
                             'Selamat datang kembali',
-                            style: AppTextTheme.section,
+                            style: AppTextTheme.display.copyWith(fontSize: 22),
                           ),
                           const SizedBox(height: AppSpacing.xxs),
                           Text(
                             'Masuk untuk melanjutkan booking.',
                             style: AppTextTheme.caption,
                           ),
-                          const Spacer(),
+                          const SizedBox(height: AppSpacing.xxl),
 
                           FadeInTextField(
                             controller: emailController,

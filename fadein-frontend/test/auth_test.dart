@@ -32,6 +32,16 @@ Future<void> pumpHingga(WidgetTester tester, Finder finder) async {
   fail('Widget tidak muncul setelah 2 detik: $finder');
 }
 
+/// Gulir ke tombol [label] dulu lalu tekan.
+///
+/// Isi sheet Register lebih tinggi dari layar uji 600px, jadi tombol aksi
+/// bisa berada di luar area tampil.
+Future<void> tekan(WidgetTester tester, String label) async {
+  await tester.ensureVisible(find.text(label));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(label));
+}
+
 void main() {
   // Widget test tidak punya secure storage; cache memori dipakai sendirian.
   setUp(() => Apiservice.tanpaSecureStorage = true);
@@ -150,9 +160,7 @@ void main() {
     await tester.pumpWidget(_app(const LoginPage()));
 
     // layar uji hanya 600px; tombol Daftar ada di bawah, gulir dulu
-    await tester.ensureVisible(find.text('Daftar'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Daftar'));
+    await tekan(tester, 'Daftar');
     await tester.pumpAndSettle();
 
     expect(find.text('HALAMAN REGISTER'), findsOneWidget);
@@ -165,7 +173,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'baru@gmail.com');
     await tester.enterText(find.byType(TextFormField).at(2), 'rahasia123');
     await tester.enterText(find.byType(TextFormField).at(3), 'rahasia123');
-    await tester.tap(find.text('Daftar'));
+    await tekan(tester, 'Daftar');
     await tester.pump();
 
     expect(find.text('Nama minimal 3 karakter!'), findsOneWidget);
@@ -178,7 +186,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'baru@gmail.com');
     await tester.enterText(find.byType(TextFormField).at(2), 'rahasia123');
     await tester.enterText(find.byType(TextFormField).at(3), 'rahasia456');
-    await tester.tap(find.text('Daftar'));
+    await tekan(tester, 'Daftar');
     await tester.pump();
 
     expect(find.text('Konfirmasi password tidak cocok!'), findsOneWidget);
@@ -202,7 +210,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'baru@gmail.com');
     await tester.enterText(find.byType(TextFormField).at(2), 'rahasia123');
     await tester.enterText(find.byType(TextFormField).at(3), 'rahasia123');
-    await tester.tap(find.text('Daftar'));
+    await tekan(tester, 'Daftar');
     await pumpHingga(tester, find.text('HALAMAN LOGIN'));
 
     expect(find.text('HALAMAN LOGIN'), findsOneWidget);
@@ -224,7 +232,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'budi@gmail.com');
     await tester.enterText(find.byType(TextFormField).at(2), 'rahasia123');
     await tester.enterText(find.byType(TextFormField).at(3), 'rahasia123');
-    await tester.tap(find.text('Daftar'));
+    await tekan(tester, 'Daftar');
     await pumpHingga(tester, find.text('Email sudah terdaftar!'));
 
     expect(find.text('Email sudah terdaftar!'), findsOneWidget);

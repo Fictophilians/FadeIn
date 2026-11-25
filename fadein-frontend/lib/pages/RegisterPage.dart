@@ -159,25 +159,29 @@ class _RegisterPageState extends State<RegisterPage> {
                     AppSpacing.screenH,
                     AppSpacing.xxl,
                   ),
-                  // Sama seperti LoginPage: dorong form ke bawah saat ruang
-                  // sisa ada, bergulir normal saat layar pendek.
+                  // Sama seperti LoginPage: isi di tengah tinggi sheet saat
+                  // ruang cukup, bergulir normal saat layar pendek.
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       minHeight: batas.maxHeight -
                           AppSpacing.xl -
                           AppSpacing.xxl,
                     ),
-                    child: IntrinsicHeight(
+                    child: Center(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text('Buat akun baru', style: AppTextTheme.section),
+                          Text(
+                            'Buat akun baru',
+                            style: AppTextTheme.display.copyWith(fontSize: 22),
+                          ),
                           const SizedBox(height: AppSpacing.xxs),
                           Text(
                             'Daftar sekali, langsung bisa booking.',
                             style: AppTextTheme.caption,
                           ),
-                          const Spacer(),
+                          const SizedBox(height: AppSpacing.xxl),
 
                           FadeInTextField(
                             controller: nameController,
