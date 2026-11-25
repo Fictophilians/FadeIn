@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 /// Route yang hanya boleh dibuka peran tertentu — `docs/DESIGN.md` 6.
 ///
 /// Peran lain langsung dialihkan ke berandanya sendiri:
-/// customer → `/home`, admin → `/admin/barbers`.
+/// customer → `/home`, admin → `/admin`.
 class RuteTerjaga extends StatelessWidget {
   const RuteTerjaga({super.key, required this.role, required this.child});
 
@@ -23,7 +23,7 @@ class RuteTerjaga extends StatelessWidget {
 
   /// Beranda milik peran tersebut.
   static String beranda(String? peran) {
-    return normalisasi(peran) == 'admin' ? '/admin/barbers' : '/home';
+    return normalisasi(peran) == 'admin' ? '/admin' : '/home';
   }
 
   @override

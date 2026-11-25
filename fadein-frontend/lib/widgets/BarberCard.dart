@@ -35,6 +35,17 @@ class BarberCard extends StatelessWidget {
 
   static const _fallback = 'assets/images/avatar_default.png';
 
+  /// Foto lokal per nama barber — dipakai kalau `photoUrl` kosong atau gagal
+  /// dimuat. Tiga barber seed punya asetnya sendiri, jadi kartu tidak pernah
+  /// tampil sebagai avatar kosong saat Cloudinary belum terisi.
+  static const _fotoLokal = {
+    'amba': 'assets/images/barber_amba.jpg',
+    'nasir': 'assets/images/barber_nasir.jpg',
+    'rusdi': 'assets/images/barber_rusdi.jpg',
+  };
+
+  String get _asetLokal => _fotoLokal[name.toLowerCase()] ?? _fallback;
+
   static const double lebarPotret = 140;
   static const double tinggiPotret = 190;
 
@@ -43,17 +54,35 @@ class BarberCard extends StatelessWidget {
     return portrait ? _potret() : _baris();
   }
 
-  Widget _foto({required double lebar, required double tinggi}) {
-    if (photoUrl == null) {
-      return Image.asset(_fallback, width: lebar, height: tinggi, fit: BoxFit.cover);
+  Widget _foto({
+    required double lebar,
+    required double tinggi,
+    Alignment alignment = Alignment.center,
+  }) {
+    final aset = _asetLokal;
+
+    if (photoUrl == null || photoUrl!.isEmpty) {
+      return Image.asset(
+        aset,
+        width: lebar,
+        height: tinggi,
+        fit: BoxFit.cover,
+        alignment: alignment,
+      );
     }
     return Image.network(
       photoUrl!,
       width: lebar,
       height: tinggi,
       fit: BoxFit.cover,
-      errorBuilder: (_, _, _) =>
-          Image.asset(_fallback, width: lebar, height: tinggi, fit: BoxFit.cover),
+      alignment: alignment,
+      errorBuilder: (_, _, _) => Image.asset(
+        aset,
+        width: lebar,
+        height: tinggi,
+        fit: BoxFit.cover,
+        alignment: alignment,
+      ),
     );
   }
 
@@ -149,7 +178,15 @@ class BarberCard extends StatelessWidget {
                 width: 2,
               ),
             ),
-            child: ClipOval(child: _foto(lebar: 64, tinggi: 64)),
+            child: ClipOval(
+              // potret barber diambil dari dada ke atas; lingkaran 64 harus
+              // mengambil bagian kepala, bukan perut
+              child: _foto(
+                lebar: 64,
+                tinggi: 64,
+                alignment: Alignment.topCenter,
+              ),
+            ),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(

@@ -15,7 +15,7 @@ Widget _app(Widget home) {
       '/register': (_) => const Scaffold(body: Text('HALAMAN REGISTER')),
       '/login': (_) => const Scaffold(body: Text('HALAMAN LOGIN')),
       '/home': (_) => const Scaffold(body: Text('HALAMAN HOME')),
-      '/admin/barbers': (_) => const Scaffold(body: Text('HALAMAN ADMIN')),
+      '/admin': (_) => const Scaffold(body: Text('HALAMAN ADMIN')),
     },
   );
 }

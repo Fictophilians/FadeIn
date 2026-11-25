@@ -1,4 +1,5 @@
 import 'package:fadein_app/constants/theme.dart';
+import 'package:fadein_app/pages/BookingPage.dart';
 import 'package:fadein_app/pages/LoginPage.dart';
 import 'package:fadein_app/pages/MenuPage.dart';
 import 'package:fadein_app/pages/RegisterPage.dart';
@@ -42,12 +43,24 @@ class FadeInApp extends StatelessWidget {
         '/': (_) => const SplashPage(),
         '/login': (_) => const LoginPage(),
         '/register': (_) => const RegisterPage(),
+
+        // Beranda customer. Tab Pesanan dan Profil ada di dalam MenuPage,
+        // jadi tidak punya route sendiri.
         '/home': (_) => const RuteTerjaga(
               role: 'customer',
               child: MenuPage(),
             ),
-        // /booking, /my-bookings, /profile menyusul di T12–T15.
-        // /admin/* menyusul di T16–T18.
+
+        '/booking': (_) => const RuteTerjaga(
+              role: 'customer',
+              child: BookingPage(),
+            ),
+
+        // Beranda admin: tab Barber · Layanan · Booking · Profil.
+        '/admin': (_) => const RuteTerjaga(
+              role: 'admin',
+              child: MenuPage(role: 'admin'),
+            ),
       },
       // route belum terdaftar jangan sampai membuat layar mati
       onUnknownRoute: (_) => MaterialPageRoute(

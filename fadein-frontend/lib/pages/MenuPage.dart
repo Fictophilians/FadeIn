@@ -1,19 +1,31 @@
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
+import 'package:fadein_app/models/User.dart';
+import 'package:fadein_app/pages/AdminBarberPage.dart';
+import 'package:fadein_app/pages/AdminBookingPage.dart';
+import 'package:fadein_app/pages/AdminServicePage.dart';
 import 'package:fadein_app/pages/HomePage.dart';
-import 'package:fadein_app/widgets/EmptyState.dart';
+import 'package:fadein_app/pages/MyBookingPage.dart';
+import 'package:fadein_app/pages/ProfilePage.dart';
 import 'package:flutter/material.dart';
 
-/// Kerangka utama aplikasi customer — `docs/DESIGN.md` 6.
+/// Kerangka utama aplikasi — `docs/DESIGN.md` 6.
 ///
 /// Pola sama seperti `MenuPage` pada proyek GameHaven: satu daftar [pages],
 /// satu [currentIndex], dan `IndexedStack` supaya tiap tab tidak dibangun
 /// ulang (data tidak di-fetch ulang setiap pindah tab).
 ///
-/// Tab Booking belum ada layarnya (T12), jadi navigasi baru tiga tab:
-/// Beranda · Pesanan · Profil.
+/// Satu kelas untuk dua peran:
+///
+/// ```
+/// customer : Beranda · Pesanan · Profil
+/// admin    : Barber · Layanan · Booking · Profil
+/// ```
 class MenuPage extends StatefulWidget {
-  const MenuPage({super.key});
+  const MenuPage({super.key, this.role = 'customer'});
+
+  /// `customer` atau `admin`.
+  final String role;
 
   @override
   State<MenuPage> createState() => _MenuPageState();
@@ -22,31 +34,65 @@ class MenuPage extends StatefulWidget {
 class _MenuPageState extends State<MenuPage> {
   int currentIndex = 0;
 
-  late final List<Widget> pages = const [
-    HomePage(),
-    _SegeraHadir(
-      icon: Icons.receipt_long_outlined,
-      title: 'Belum ada pesanan',
-      message: 'Booking yang kamu buat akan muncul di sini.',
-    ),
-    _SegeraHadir(
-      icon: Icons.person_outline,
-      title: 'Profil',
-      message: 'Halaman profil sedang disiapkan.',
-    ),
-  ];
+  /// Supaya tab Pesanan bisa disegarkan saat dibuka — `IndexedStack` membuat
+  /// layarnya tidak pernah dibangun ulang, jadi booking baru tidak akan
+  /// muncul tanpa dorongan ini.
+  final _kunciPesanan = GlobalKey<MyBookingPageState>();
+  final _kunciBookingAdmin = GlobalKey<AdminBookingPageState>();
 
-  static const _label = ['Beranda', 'Pesanan', 'Profil'];
-  static const _ikon = [
+  bool get _admin => widget.role == UserRole.admin.value;
+
+  late final List<Widget> pages = _admin
+      ? [
+          const AdminBarberPage(),
+          const AdminServicePage(),
+          AdminBookingPage(key: _kunciBookingAdmin),
+          const ProfilePage(),
+        ]
+      : [
+          HomePage(onBukaPesanan: () => _pilih(1)),
+          MyBookingPage(key: _kunciPesanan),
+          const ProfilePage(),
+        ];
+
+  void _pilih(int i) {
+    setState(() => currentIndex = i);
+
+    // muat ulang data tab yang butuh data segar
+    if (_admin && i == 2) _kunciBookingAdmin.currentState?.muatData();
+    if (!_admin && i == 1) _kunciPesanan.currentState?.muatData();
+  }
+
+  static const _labelCustomer = ['Beranda', 'Pesanan', 'Profil'];
+  static const _ikonCustomer = [
     Icons.home_outlined,
     Icons.receipt_long_outlined,
     Icons.person_outline,
   ];
-  static const _ikonAktif = [
+  static const _ikonCustomerAktif = [
     Icons.home_rounded,
     Icons.receipt_long_rounded,
     Icons.person_rounded,
   ];
+
+  static const _labelAdmin = ['Barber', 'Layanan', 'Booking', 'Profil'];
+  static const _ikonAdmin = [
+    Icons.content_cut_outlined,
+    Icons.design_services_outlined,
+    Icons.event_note_outlined,
+    Icons.person_outline,
+  ];
+  static const _ikonAdminAktif = [
+    Icons.content_cut,
+    Icons.design_services,
+    Icons.event_note_rounded,
+    Icons.person_rounded,
+  ];
+
+  List<String> get _label => _admin ? _labelAdmin : _labelCustomer;
+  List<IconData> get _ikon => _admin ? _ikonAdmin : _ikonCustomer;
+  List<IconData> get _ikonAktif =>
+      _admin ? _ikonAdminAktif : _ikonCustomerAktif;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +101,10 @@ class _MenuPageState extends State<MenuPage> {
       body: IndexedStack(index: currentIndex, children: pages),
       bottomNavigationBar: _NavigasiBawah(
         index: currentIndex,
-        onPilih: (i) => setState(() => currentIndex = i),
+        label: _label,
+        ikon: _ikon,
+        ikonAktif: _ikonAktif,
+        onPilih: _pilih,
       ),
     );
   }
@@ -64,9 +113,18 @@ class _MenuPageState extends State<MenuPage> {
 /// Navigasi bawah: ikon Material 24, aktif `ink`, tidak aktif `muted`,
 /// titik `gold` di bawah label aktif. Tanpa shadow, hanya garis atas.
 class _NavigasiBawah extends StatelessWidget {
-  const _NavigasiBawah({required this.index, required this.onPilih});
+  const _NavigasiBawah({
+    required this.index,
+    required this.label,
+    required this.ikon,
+    required this.ikonAktif,
+    required this.onPilih,
+  });
 
   final int index;
+  final List<String> label;
+  final List<IconData> ikon;
+  final List<IconData> ikonAktif;
   final ValueChanged<int> onPilih;
 
   @override
@@ -82,7 +140,7 @@ class _NavigasiBawah extends StatelessWidget {
           height: 64,
           child: Row(
             children: [
-              for (var i = 0; i < _MenuPageState._label.length; i++)
+              for (var i = 0; i < label.length; i++)
                 Expanded(child: _item(i)),
             ],
           ),
@@ -97,20 +155,20 @@ class _NavigasiBawah extends StatelessWidget {
     return Semantics(
       button: true,
       selected: aktif,
-      label: _MenuPageState._label[i],
+      label: label[i],
       child: InkWell(
         onTap: () => onPilih(i),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              aktif ? _MenuPageState._ikonAktif[i] : _MenuPageState._ikon[i],
+              aktif ? ikonAktif[i] : ikon[i],
               size: 24,
               color: aktif ? AppColors.ink : AppColors.muted,
             ),
             const SizedBox(height: AppSpacing.xxs),
             Text(
-              _MenuPageState._label[i],
+              label[i],
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextTheme.caption.copyWith(
@@ -132,28 +190,6 @@ class _NavigasiBawah extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Isi tab yang layarnya belum dibuat (T14 Pesanan, T15 Profil).
-class _SegeraHadir extends StatelessWidget {
-  const _SegeraHadir({
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
-
-  final IconData icon;
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: EmptyState(icon: icon, title: title, message: message),
       ),
     );
   }

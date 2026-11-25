@@ -21,7 +21,11 @@ import 'package:flutter/material.dart';
 /// Hanya memuat `/services` dan `/barbers`. Booking terdekat dimuat terpisah
 /// dan kegagalannya tidak menjatuhkan seluruh beranda.
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, this.onBukaPesanan});
+
+  /// Dipanggil saat kartu jadwal ditekan. `MenuPage` mengisinya dengan
+  /// perpindahan ke tab Pesanan supaya tidak menumpuk layar baru.
+  final VoidCallback? onBukaPesanan;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -137,7 +141,7 @@ class _HomePageState extends State<HomePage> {
             nama: namaUser.isEmpty ? 'Kak' : namaUser,
             upcoming: upcoming,
             onBellTap: () => Pesan.sukses(context, 'Belum ada notifikasi.'),
-            onUpcomingTap: () => Navigator.pushNamed(context, '/my-bookings'),
+            onUpcomingTap: () => widget.onBukaPesanan?.call(),
           ),
 
           const SizedBox(height: AppSpacing.xl),
