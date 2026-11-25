@@ -96,14 +96,14 @@ INSERT INTO users (name, email, password, role, photo) VALUES
 ('Rina Putri', 'rina@gmail.com',
  '$2b$10$dKnmJ4xnAnGXqZbvGMZvoe2yROitg.fVfvz7xMae1kge6tz9bh/oW', 'customer', NULL);
 
--- foto memakai URL gambar sementara; admin dapat menggantinya lewat upload
+-- foto seed memakai Cloudinary; admin dapat menggantinya lewat upload
 INSERT INTO barbers (name, description, photo) VALUES
-('Andi', 'Spesialis fade dan pompadour, pengalaman 5 tahun.',
- 'https://i.pravatar.cc/400?img=12'),
-('Budi', 'Ahli potongan klasik dan cukur jenggot.',
- 'https://i.pravatar.cc/400?img=13'),
-('Rizky', 'Fokus pada undercut dan styling modern.',
- 'https://i.pravatar.cc/400?img=14');
+('Amba', 'Spesialis fade dan pompadour, pengalaman 5 tahun.',
+ 'https://res.cloudinary.com/vhzwlurw/image/upload/fadein/barbers/barber_amba.jpg'),
+('Nasir', 'Ahli potongan klasik dan cukur jenggot.',
+ 'https://res.cloudinary.com/vhzwlurw/image/upload/fadein/barbers/barber_nasir.jpg'),
+('Rusdi', 'Fokus pada undercut dan styling modern.',
+ 'https://res.cloudinary.com/vhzwlurw/image/upload/fadein/barbers/barber_rusdi.jpg');
 
 INSERT INTO services (name, price, duration) VALUES
 ('Haircut', 35000, 30),
