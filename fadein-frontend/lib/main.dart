@@ -7,11 +7,19 @@ import 'package:fadein_app/pages/RuteTerjaga.dart';
 import 'package:fadein_app/pages/SplashPage.dart';
 import 'package:fadein_app/utils/navigator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Login/Register memakai hero bertinggi tetap; pada landscape sheet form
+  // hanya menyisakan beberapa puluh piksel. Kunci portrait agar form tetap
+  // terbaca saat HP diputar.
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
 
   // memuat nama bulan & hari bahasa Indonesia untuk DateFormat
   await initializeDateFormatting('id_ID');
