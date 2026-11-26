@@ -27,6 +27,7 @@ class AdminBarberPage extends StatefulWidget {
 class AdminBarberPageState extends State<AdminBarberPage> {
   List<Barber> barbers = [];
   bool isLoading = true;
+  bool _pernahMuat = false;
   String? error;
 
   @override
@@ -36,8 +37,12 @@ class AdminBarberPageState extends State<AdminBarberPage> {
   }
 
   Future<void> muatData() async {
+    // Spinner penuh hanya pada muat pertama atau setelah gagal; refresh
+    // mempertahankan daftar lama supaya layar tidak berkedip kosong.
+    final tampilkanSpinner = !_pernahMuat || error != null;
+
     setState(() {
-      isLoading = true;
+      if (tampilkanSpinner) isLoading = true;
       error = null;
     });
 
@@ -51,6 +56,7 @@ class AdminBarberPageState extends State<AdminBarberPage> {
             .map((e) => Barber.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
         isLoading = false;
+        _pernahMuat = true;
       });
     } on ApiException catch (e) {
       if (!mounted) return;

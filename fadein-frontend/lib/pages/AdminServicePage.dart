@@ -24,6 +24,7 @@ class AdminServicePage extends StatefulWidget {
 class AdminServicePageState extends State<AdminServicePage> {
   List<Service> services = [];
   bool isLoading = true;
+  bool _pernahMuat = false;
   String? error;
 
   @override
@@ -33,8 +34,12 @@ class AdminServicePageState extends State<AdminServicePage> {
   }
 
   Future<void> muatData() async {
+    // Spinner penuh hanya pada muat pertama atau setelah gagal; refresh
+    // mempertahankan daftar lama supaya layar tidak berkedip kosong.
+    final tampilkanSpinner = !_pernahMuat || error != null;
+
     setState(() {
-      isLoading = true;
+      if (tampilkanSpinner) isLoading = true;
       error = null;
     });
 
@@ -48,6 +53,7 @@ class AdminServicePageState extends State<AdminServicePage> {
             .map((e) => Service.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
         isLoading = false;
+        _pernahMuat = true;
       });
     } on ApiException catch (e) {
       if (!mounted) return;

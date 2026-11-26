@@ -3,6 +3,7 @@ import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/Booking.dart';
 import 'package:fadein_app/models/BookingStatus.dart';
 import 'package:fadein_app/service/api.dart';
+import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/utils/pesan.dart';
 import 'package:fadein_app/widgets/BookingCard.dart';
 import 'package:fadein_app/widgets/ConfirmDialog.dart';
@@ -33,12 +34,17 @@ class MyBookingPageState extends State<MyBookingPage> {
 
   List<Booking> bookings = [];
   bool isLoading = true;
+  bool _pernahMuat = false;
   String? error;
 
   /// Dipanggil tab lain lewat `GlobalKey` setelah booking baru dibuat.
   Future<void> muatData() async {
+    // Spinner penuh hanya pada muat pertama atau setelah gagal; refresh
+    // mempertahankan daftar lama supaya layar tidak berkedip kosong.
+    final tampilkanSpinner = !_pernahMuat || error != null;
+
     setState(() {
-      isLoading = true;
+      if (tampilkanSpinner) isLoading = true;
       error = null;
     });
 
@@ -52,6 +58,7 @@ class MyBookingPageState extends State<MyBookingPage> {
             .map((e) => Booking.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
         isLoading = false;
+        _pernahMuat = true;
       });
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -94,7 +101,8 @@ class MyBookingPageState extends State<MyBookingPage> {
       context,
       title: 'Batalkan booking?',
       message: 'Jadwal ${booking.serviceName} pada '
-          '${booking.bookingDate} ${booking.bookingTime} akan dibatalkan.',
+          '${formatTanggal(booking.bookingDate)} '
+          '${formatJam(booking.bookingTime)} akan dibatalkan.',
       confirmLabel: 'Ya, batalkan',
     );
 

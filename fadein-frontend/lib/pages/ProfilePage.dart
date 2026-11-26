@@ -30,12 +30,17 @@ class ProfilePage extends StatefulWidget {
 class ProfilePageState extends State<ProfilePage> {
   User? user;
   bool isLoading = true;
+  bool _pernahMuat = false;
   bool isMengunggah = false;
   String? error;
 
   Future<void> muatData() async {
+    // Spinner penuh hanya pada muat pertama atau setelah gagal; refresh
+    // mempertahankan profil yang sudah tampil supaya tidak berkedip.
+    final tampilkanSpinner = !_pernahMuat || error != null;
+
     setState(() {
-      isLoading = true;
+      if (tampilkanSpinner) isLoading = true;
       error = null;
     });
 
@@ -47,6 +52,7 @@ class ProfilePageState extends State<ProfilePage> {
       setState(() {
         user = User.fromJson(Map<String, dynamic>.from(data as Map));
         isLoading = false;
+        _pernahMuat = true;
       });
     } on ApiException catch (e) {
       if (!mounted) return;

@@ -43,6 +43,7 @@ class HomePageState extends State<HomePage> {
   String? fotoUser;
 
   bool isLoading = true;
+  bool _pernahMuat = false;
   String? error;
 
   @override
@@ -52,8 +53,13 @@ class HomePageState extends State<HomePage> {
   }
 
   Future<void> muatData() async {
+    // Spinner penuh hanya pada muat pertama atau setelah gagal. Refresh
+    // (pull-to-refresh / kembali ke tab) mempertahankan isi layar supaya
+    // tidak berkedip kosong.
+    final tampilkanSpinner = !_pernahMuat || error != null;
+
     setState(() {
-      isLoading = true;
+      if (tampilkanSpinner) isLoading = true;
       error = null;
     });
 
@@ -76,6 +82,7 @@ class HomePageState extends State<HomePage> {
             .map((e) => Barber.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
         isLoading = false;
+        _pernahMuat = true;
       });
 
       _muatBookingTerdekat();
@@ -106,9 +113,15 @@ class HomePageState extends State<HomePage> {
       // backend mengurutkan terbaru dulu, jadi yang paling dekat harus dicari
       // manual. Booking yang tanggalnya sudah lewat tidak ditampilkan.
       final hariIni = tanggalHariIniWib();
+      final jamSekarang = jamSekarangWib();
       Booking? terdekat;
       for (final booking in daftar) {
         if (booking.bookingDate.compareTo(hariIni) < 0) continue;
+        // jadwal hari ini yang jamnya sudah lewat bukan "jadwal berikutnya"
+        if (booking.bookingDate == hariIni &&
+            booking.bookingTime.compareTo(jamSekarang) <= 0) {
+          continue;
+        }
         if (terdekat == null || _lebihDulu(booking, terdekat)) {
           terdekat = booking;
         }
@@ -364,7 +377,7 @@ class _KartuJadwal extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(right: AppSpacing.md),
                 child: Text(
-                  booking.bookingTime,
+                  formatJam(booking.bookingTime),
                   style: AppTextTheme.display.copyWith(fontSize: 22),
                 ),
               ),

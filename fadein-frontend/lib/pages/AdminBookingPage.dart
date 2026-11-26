@@ -32,6 +32,7 @@ class AdminBookingPageState extends State<AdminBookingPage> {
   List<Booking> bookings = [];
   BookingStatus? filter;
   bool isLoading = true;
+  bool _pernahMuat = false;
   String? error;
 
   /// Id booking yang sedang diproses, supaya tombolnya tidak bisa ditekan dua kali.
@@ -44,8 +45,12 @@ class AdminBookingPageState extends State<AdminBookingPage> {
   }
 
   Future<void> muatData() async {
+    // Spinner penuh hanya pada muat pertama atau setelah gagal; refresh
+    // mempertahankan daftar lama supaya layar tidak berkedip kosong.
+    final tampilkanSpinner = !_pernahMuat || error != null;
+
     setState(() {
-      isLoading = true;
+      if (tampilkanSpinner) isLoading = true;
       error = null;
     });
 
@@ -59,6 +64,7 @@ class AdminBookingPageState extends State<AdminBookingPage> {
             .map((e) => Booking.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
         isLoading = false;
+        _pernahMuat = true;
       });
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -82,6 +88,23 @@ class AdminBookingPageState extends State<AdminBookingPage> {
 
   Future<void> ubahStatus(Booking booking, BookingStatus tujuan) async {
     if (idDiproses != null) return;
+
+    // "Selesai" permanen: backend menolak perubahan status setelah completed,
+    // jadi minta konfirmasi dulu supaya tidak salah ketuk.
+    if (tujuan == BookingStatus.completed) {
+      final yakin = await ConfirmDialog.tampilkan(
+        context,
+        title: 'Selesaikan booking?',
+        message:
+            'Booking ${booking.customerName} pada '
+            '${formatTanggal(booking.bookingDate)} '
+            '${formatJam(booking.bookingTime)} akan ditandai selesai '
+            'dan tidak bisa diubah lagi.',
+        confirmLabel: 'Ya, selesaikan',
+      );
+
+      if (!yakin || !mounted) return;
+    }
 
     setState(() => idDiproses = booking.id);
 
