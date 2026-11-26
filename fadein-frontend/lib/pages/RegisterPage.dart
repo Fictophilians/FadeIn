@@ -174,7 +174,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         children: [
                           Text(
                             'Buat akun baru',
-                            style: AppTextTheme.display.copyWith(fontSize: 22),
+                            style: AppTextTheme.display.copyWith(fontSize: 28),
                           ),
                           const SizedBox(height: AppSpacing.xxs),
                           Text(

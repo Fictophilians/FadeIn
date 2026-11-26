@@ -163,7 +163,7 @@ class _LoginPageState extends State<LoginPage> {
                         children: [
                           Text(
                             'Selamat datang kembali',
-                            style: AppTextTheme.display.copyWith(fontSize: 22),
+                            style: AppTextTheme.display.copyWith(fontSize: 28),
                           ),
                           const SizedBox(height: AppSpacing.xxs),
                           Text(
