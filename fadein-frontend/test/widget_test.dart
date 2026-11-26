@@ -2,6 +2,7 @@ import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/pages/SplashPage.dart';
 import 'package:fadein_app/service/api.dart';
+import 'package:fadein_app/widgets/FadeInButton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -75,6 +76,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('HALAMAN LOGIN'), findsOneWidget);
+    });
+
+    testWidgets('blok isi splash tidak menempel ke dasar layar', (tester) async {
+      await tester.pumpWidget(app());
+      await tester.pump();
+
+      final dasarTombol = tester.getBottomLeft(find.byType(FadeInButton)).dy;
+      final tinggiLayar = tester.view.physicalSize.height /
+          tester.view.devicePixelRatio;
+
+      expect(tinggiLayar - dasarTombol, closeTo(SplashPage.paddingBawah, 1));
     });
   });
 }

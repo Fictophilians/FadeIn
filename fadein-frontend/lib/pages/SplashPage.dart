@@ -22,6 +22,12 @@ class SplashPage extends StatefulWidget {
     return role == 'admin' ? '/admin' : '/home';
   }
 
+  /// Jarak blok logo/teks/tombol ke tepi bawah layar.
+  ///
+  /// Lebih besar dari default `HeroHeader` (32) supaya blok tidak menempel
+  /// terlalu rendah di layar tinggi.
+  static const paddingBawah = 56.0;
+
   @override
   State<SplashPage> createState() => _SplashPageState();
 }
@@ -50,6 +56,7 @@ class _SplashPageState extends State<SplashPage> {
       body: HeroHeader(
         height: double.infinity,
         scrim: AppColors.splashScrim,
+        paddingBottom: SplashPage.paddingBawah,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
