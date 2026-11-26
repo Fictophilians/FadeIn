@@ -93,8 +93,10 @@ class _MenuPageState extends State<MenuPage> {
   void _pilih(int i) {
     setState(() => currentIndex = i);
 
-    // muat ulang data tab yang butuh data segar
+    // muat ulang data tab yang butuh data segar; Beranda ikut disegarkan
+    // supaya foto profil dan jadwal terdekat tidak basi setelah aksi di tab lain
     if (_admin && i == 2) _kunciBookingAdmin.currentState?.muatData();
+    if (!_admin && i == 0) _kunciBeranda.currentState?.muatData();
     if (!_admin && i == 1) _kunciPesanan.currentState?.muatData();
   }
 
