@@ -27,6 +27,7 @@ class HeroHeader extends StatelessWidget {
     this.onBack,
     this.roundedBottom = false,
     this.scrim,
+    this.paddingBottom = AppSpacing.xxl,
   });
 
   /// Path aset (`assets/...`). `null` = blok gelap tanpa foto.
@@ -45,6 +46,14 @@ class HeroHeader extends StatelessWidget {
 
   /// Tirai pengganti gradien. `null` → `AppGradient.heroOverlay`.
   final Color? scrim;
+
+  /// Jarak [child] ke tepi bawah foto.
+  ///
+  /// [child] dipaku ke dasar lewat `Spacer`, jadi menambah nilai ini
+  /// mengangkat seluruh isi hero tanpa mengubah tinggi fotonya. Layar yang
+  /// juga memperbesar [height] harus menaikkan nilai ini sebesar selisihnya
+  /// supaya teks tidak ikut turun.
+  final double paddingBottom;
 
   @override
   Widget build(BuildContext context) {
@@ -81,11 +90,11 @@ class HeroHeader extends StatelessWidget {
             SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
                   AppSpacing.screenH,
                   AppSpacing.md,
                   AppSpacing.screenH,
-                  AppSpacing.xl,
+                  paddingBottom,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

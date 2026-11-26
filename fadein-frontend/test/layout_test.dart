@@ -78,6 +78,43 @@ void main() {
     expect(find.text('Nama lengkap'), findsOneWidget);
   });
 
+  testWidgets('tepi sheet login turun 40 dan judul menempel tepi', (
+    tester,
+  ) async {
+    _layarHp(tester);
+    await tester.pumpWidget(_app(const LoginPage()));
+    await tester.pump();
+
+    final tepiSheet = LoginPage.heroTinggi - AppRadius.sheetLg;
+    final judul = tester.getTopLeft(find.text('Selamat datang kembali')).dy;
+
+    // judul hanya diberi jarak `lg` dari tepi putih, bukan didorong ke tengah
+    expect(judul - tepiSheet, closeTo(AppSpacing.lg, 1));
+
+    // teks hero tidak ikut bergeser: tetap di posisi lama
+    final caption = tester
+        .getBottomLeft(find.text('Booking barbershop tanpa antre.'))
+        .dy;
+    expect(caption, closeTo(264, 1));
+  });
+
+  testWidgets('tepi sheet register turun 40 dan judul menempel tepi', (
+    tester,
+  ) async {
+    _layarHp(tester);
+    await tester.pumpWidget(_app(const RegisterPage()));
+    await tester.pump();
+
+    final tepiSheet = RegisterPage.heroTinggi - AppRadius.sheetLg;
+    final judul = tester.getTopLeft(find.text('Buat akun baru')).dy;
+
+    expect(judul - tepiSheet, closeTo(AppSpacing.lg, 1));
+
+    final caption =
+        tester.getBottomLeft(find.text('Satu menit, lalu bisa booking.')).dy;
+    expect(caption, closeTo(184, 1));
+  });
+
   testWidgets('HomePage memuat layanan sebagai grid dan barber sebagai rail', (
     tester,
   ) async {

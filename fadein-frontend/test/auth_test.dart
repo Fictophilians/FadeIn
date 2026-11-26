@@ -56,7 +56,7 @@ void main() {
   testWidgets('login kosong menampilkan peringatan', (tester) async {
     await tester.pumpWidget(_app(const LoginPage()));
 
-    await tester.tap(find.text('Masuk'));
+    await tekan(tester, 'Masuk');
     await tester.pump();
 
     expect(find.text('Email dan password wajib diisi!'), findsOneWidget);
@@ -67,7 +67,7 @@ void main() {
 
     await tester.enterText(find.byType(TextFormField).first, 'budigmail');
     await tester.enterText(find.byType(TextFormField).last, 'rahasia123');
-    await tester.tap(find.text('Masuk'));
+    await tekan(tester, 'Masuk');
     await tester.pump();
 
     expect(find.text('Format email tidak valid!'), findsOneWidget);
@@ -85,7 +85,7 @@ void main() {
 
     await tester.enterText(find.byType(TextFormField).first, 'budi@gmail.com');
     await tester.enterText(find.byType(TextFormField).last, 'salah');
-    await tester.tap(find.text('Masuk'));
+    await tekan(tester, 'Masuk');
     await pumpHingga(tester, find.text('Email atau password salah'));
 
     expect(find.text('Email atau password salah'), findsOneWidget);
@@ -118,7 +118,7 @@ void main() {
 
     await tester.enterText(find.byType(TextFormField).first, 'budi@gmail.com');
     await tester.enterText(find.byType(TextFormField).last, 'customer123');
-    await tester.tap(find.text('Masuk'));
+    await tekan(tester, 'Masuk');
     await pumpHingga(tester, find.text('HALAMAN HOME'));
 
     expect(find.text('HALAMAN HOME'), findsOneWidget);
@@ -150,7 +150,7 @@ void main() {
 
     await tester.enterText(find.byType(TextFormField).first, 'admin@fadein.com');
     await tester.enterText(find.byType(TextFormField).last, 'admin123');
-    await tester.tap(find.text('Masuk'));
+    await tekan(tester, 'Masuk');
     await pumpHingga(tester, find.text('HALAMAN ADMIN'));
 
     expect(find.text('HALAMAN ADMIN'), findsOneWidget);

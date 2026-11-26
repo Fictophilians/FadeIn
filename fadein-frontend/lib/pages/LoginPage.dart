@@ -16,7 +16,14 @@ class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   /// Tinggi foto hero.
-  static const heroTinggi = 320.0;
+  static const heroTinggi = 360.0;
+
+  /// Jarak teks hero ke tepi bawah foto.
+  ///
+  /// 64 = 24 (padding lama) + 40 (kenaikan [heroTinggi]). Karena isi hero
+  /// dipaku ke dasar, menambah nilai ini sebesar selisih tinggi membuat teks
+  /// tetap di posisi lama walau tepi putih sheet turun 40.
+  static const heroPadding = 64.0;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -100,6 +107,7 @@ class _LoginPageState extends State<LoginPage> {
             height: LoginPage.heroTinggi,
             child: HeroHeader(
               height: LoginPage.heroTinggi,
+              paddingBottom: LoginPage.heroPadding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -139,90 +147,78 @@ class _LoginPageState extends State<LoginPage> {
                   top: Radius.circular(AppRadius.sheetLg),
                 ),
               ),
-              child: LayoutBuilder(
-                builder: (context, batas) => SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenH,
-                    AppSpacing.xl,
-                    AppSpacing.screenH,
-                    AppSpacing.xxl,
-                  ),
-                  // ConstrainedBox + Center: isi diletakkan di tengah tinggi
-                  // sheet saat ruang cukup; saat layar pendek isi melebihi
-                  // batas dan tetap bisa digulir.
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: batas.maxHeight -
-                          AppSpacing.xl -
-                          AppSpacing.xxl,
+              // Isi sheet rata atas: judul langsung menempel di bawah tepi
+              // putih, tanpa pita kosong. Saat layar pendek isi melebihi
+              // tinggi sheet dan tetap bisa digulir.
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenH,
+                  AppSpacing.lg,
+                  AppSpacing.screenH,
+                  AppSpacing.xxl,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Selamat datang kembali',
+                      style: AppTextTheme.display.copyWith(fontSize: 28),
                     ),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'Selamat datang kembali',
-                            style: AppTextTheme.display.copyWith(fontSize: 28),
-                          ),
-                          const SizedBox(height: AppSpacing.xxs),
-                          Text(
-                            'Masuk untuk melanjutkan booking.',
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      'Masuk untuk melanjutkan booking.',
+                      style: AppTextTheme.caption,
+                    ),
+                    const SizedBox(height: AppSpacing.xxl),
+
+                    FadeInTextField(
+                      controller: emailController,
+                      label: 'Email',
+                      hint: 'nama@email.com',
+                      keyboardType: TextInputType.emailAddress,
+                      prefixIcon: Icons.mail_outline,
+                    ),
+                    const SizedBox(height: AppSpacing.fieldGap),
+                    FadeInTextField(
+                      controller: passwordController,
+                      label: 'Password',
+                      obscure: true,
+                      prefixIcon: Icons.lock_outline,
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+
+                    FadeInButton(
+                      label: 'Masuk',
+                      isLoading: isLoading,
+                      onPressed: isLoading ? null : login,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Belum punya akun?',
                             style: AppTextTheme.caption,
                           ),
-                          const SizedBox(height: AppSpacing.xxl),
-
-                          FadeInTextField(
-                            controller: emailController,
-                            label: 'Email',
-                            hint: 'nama@email.com',
-                            keyboardType: TextInputType.emailAddress,
-                            prefixIcon: Icons.mail_outline,
-                          ),
-                          const SizedBox(height: AppSpacing.fieldGap),
-                          FadeInTextField(
-                            controller: passwordController,
-                            label: 'Password',
-                            obscure: true,
-                            prefixIcon: Icons.lock_outline,
-                          ),
-                          const SizedBox(height: AppSpacing.xl),
-
-                          FadeInButton(
-                            label: 'Masuk',
-                            isLoading: isLoading,
-                            onPressed: isLoading ? null : login,
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  'Belum punya akun?',
-                                  style: AppTextTheme.caption,
+                        ),
+                        TextButton(
+                          onPressed: isLoading
+                              ? null
+                              : () => Navigator.pushNamed(
+                                  context,
+                                  '/register',
                                 ),
-                              ),
-                              TextButton(
-                                onPressed: isLoading
-                                    ? null
-                                    : () => Navigator.pushNamed(
-                                        context,
-                                        '/register',
-                                      ),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: AppColors.ink,
-                                  textStyle: AppTextTheme.label,
-                                ),
-                                child: const Text('Daftar'),
-                              ),
-                            ],
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.ink,
+                            textStyle: AppTextTheme.label,
                           ),
-                        ],
-                      ),
+                          child: const Text('Daftar'),
+                        ),
+                      ],
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
