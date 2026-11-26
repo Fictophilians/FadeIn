@@ -305,22 +305,30 @@ class _BookingPageState extends State<BookingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: AppBar(
-        title: const Text('BOOKING'),
-        leading: IconButton(
-          onPressed: kembali,
-          icon: const Icon(Icons.arrow_back),
-          tooltip: 'Kembali',
+    return PopScope(
+      // Back sistem mengikuti tombol back di AppBar: mundur satu langkah,
+      // dan baru menutup form saat berada di langkah pertama.
+      canPop: langkah == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) kembali();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.bg,
+        appBar: AppBar(
+          title: const Text('BOOKING'),
+          leading: IconButton(
+            onPressed: kembali,
+            icon: const Icon(Icons.arrow_back),
+            tooltip: 'Kembali',
+          ),
         ),
-      ),
-      body: Column(
-        children: [
-          _IndikatorLangkah(langkah: langkah),
-          Expanded(child: _isi()),
-          _barisBawah(),
-        ],
+        body: Column(
+          children: [
+            _IndikatorLangkah(langkah: langkah),
+            Expanded(child: _isi()),
+            _barisBawah(),
+          ],
+        ),
       ),
     );
   }
