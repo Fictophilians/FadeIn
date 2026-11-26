@@ -82,6 +82,11 @@ class Apiservice {
 
   static const _timeout = Duration(seconds: 15);
 
+  /// Unggah 2 MB bisa jauh lebih lambat dari request biasa. Backend memberi
+  /// Cloudinary 20 detik, jadi klien harus menunggu lebih lama daripada
+  /// server supaya unggah yang berhasil tidak dilaporkan gagal.
+  static const _timeoutUpload = Duration(seconds: 45);
+
   // cache di memori supaya tidak baca storage di setiap request
   static String? _token;
   static Map<String, dynamic>? _user;
@@ -242,7 +247,7 @@ class Apiservice {
         ),
       );
 
-      final streamed = await client.send(request).timeout(_timeout);
+      final streamed = await client.send(request).timeout(_timeoutUpload);
       final response = await http.Response.fromStream(streamed);
       return _prosesResponse(response);
     });
