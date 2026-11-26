@@ -96,6 +96,8 @@ class ProfilePageState extends State<ProfilePage> {
         Uint8List.fromList(bytes),
         filename: berkas.name,
         mimeType: berkas.mimeType ?? 'image/jpeg',
+        // backend mendaftarkan `router.put('/photo')`; POST akan dijawab 404
+        method: 'PUT',
       );
 
       if (!mounted) return;

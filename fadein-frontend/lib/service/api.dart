@@ -207,14 +207,16 @@ class Apiservice {
   /// Unggah satu file gambar dengan nama field `photo`.
   ///
   /// Backend memakai `multer.single('photo')`, jadi nama field tidak boleh lain.
-  /// [method] bisa `PUT` untuk endpoint yang mendaftarkan `router.put`.
+  /// [method] wajib disebut: tiap endpoint mendaftarkan verb yang berbeda
+  /// (`PUT /users/photo`, `POST|PUT /barbers`), dan default diam-diam pernah
+  /// membuat unggah foto profil terkirim sebagai POST lalu dijawab 404.
   static Future<dynamic> upload(
     String endpoint,
     List<int> bytes, {
     required String filename,
+    required String method,
     String mimeType = 'image/jpeg',
     Map<String, String>? fields,
-    String method = 'POST',
   }) {
     return _safeRequest(() async {
       final request = http.MultipartRequest(
