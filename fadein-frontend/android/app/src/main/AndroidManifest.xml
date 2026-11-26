@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Dibutuhkan seluruh request ke REST API. Template Flutter hanya
+         menaruh izin ini di manifest debug/profile, sehingga APK release
+         tanpa baris ini tidak bisa terhubung ke server sama sekali. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="FadeIn"
         android:name="${applicationName}"
