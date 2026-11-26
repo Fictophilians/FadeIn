@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:fadein_app/constants/theme.dart';
@@ -5,9 +6,11 @@ import 'package:fadein_app/pages/AdminBarberPage.dart';
 import 'package:fadein_app/pages/AdminBookingPage.dart';
 import 'package:fadein_app/pages/AdminServicePage.dart';
 import 'package:fadein_app/pages/BookingPage.dart';
+import 'package:fadein_app/pages/HomePage.dart';
 import 'package:fadein_app/pages/MyBookingPage.dart';
 import 'package:fadein_app/pages/ProfilePage.dart';
 import 'package:fadein_app/service/api.dart';
+import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/widgets/BarberCard.dart';
 import 'package:fadein_app/widgets/BookingCard.dart';
 import 'package:fadein_app/widgets/ServiceCard.dart';
@@ -349,6 +352,51 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets('back sistem mundur satu langkah, bukan menutup form', (
+      tester,
+    ) async {
+      _layarHp(tester);
+
+      await tester.pumpWidget(_app(const BookingPage()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Haircut'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lanjut'));
+      await tester.pumpAndSettle();
+      expect(find.text('LANGKAH 2/5'), findsOneWidget);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BookingPage), findsOneWidget);
+      expect(find.text('LANGKAH 1/5'), findsOneWidget);
+    });
+  });
+
+  group('HomePage', () {
+    testWidgets('jadwal hari ini yang sudah lewat tidak ditampilkan', (
+      tester,
+    ) async {
+      _layarHp(tester);
+
+      Apiservice.client = _client(
+        bookings: [
+          {
+            ..._booking,
+            'booking_date': tanggalHariIniWib(),
+            'booking_time': '00:00',
+          },
+        ],
+      );
+
+      await tester.pumpWidget(_app(const HomePage()));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('JADWAL BERIKUTNYA'), findsNothing);
+    });
   });
 
   group('MyBookingPage', () {
@@ -390,6 +438,38 @@ void main() {
 
       expect(find.text('Belum ada pesanan'), findsOneWidget);
       expect(find.text('Booking sekarang'), findsOneWidget);
+    });
+
+    testWidgets('muat ulang tidak mengosongkan daftar', (tester) async {
+      _layarHp(tester);
+
+      var panggilan = 0;
+      final tunda = Completer<void>();
+      Apiservice.client = MockClient((request) async {
+        panggilan++;
+        if (panggilan > 1) await tunda.future;
+        return _json({'message': 'ok', 'data': [_booking]});
+      });
+
+      await tester.pumpWidget(_app(const MyBookingPage()));
+      await tester.pumpAndSettle();
+      expect(find.byType(BookingCard), findsOneWidget);
+
+      final state = tester.state<MyBookingPageState>(
+        find.byType(MyBookingPage),
+      );
+      state.muatData();
+      await tester.pump();
+
+      // daftar lama tetap tampil selama request berjalan
+      expect(find.byType(BookingCard), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+
+      tunda.complete();
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(BookingCard), findsOneWidget);
     });
   });
 
@@ -449,6 +529,30 @@ void main() {
       // pending → tombol Konfirmasi + Batalkan
       expect(find.text('Konfirmasi'), findsOneWidget);
       expect(find.text('Batalkan'), findsOneWidget);
+    });
+
+    testWidgets('Selesai minta konfirmasi dan bisa dibatalkan', (tester) async {
+      _layarHp(tester);
+      Apiservice.client = _client(
+        bookings: [
+          {..._booking, 'status': 'confirmed'},
+        ],
+      );
+
+      await tester.pumpWidget(_app(const AdminBookingPage()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Selesai'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Selesaikan booking?'), findsOneWidget);
+      expect(find.text('Ya, selesaikan'), findsOneWidget);
+
+      await tester.tap(find.text('Batal'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Selesaikan booking?'), findsNothing);
+      expect(tester.takeException(), isNull);
     });
   });
 
