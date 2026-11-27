@@ -62,6 +62,17 @@ void main() {
     expect(find.text('Email dan password wajib diisi!'), findsOneWidget);
   });
 
+  testWidgets('login password kosong menampilkan peringatan', (tester) async {
+    await tester.pumpWidget(_app(const LoginPage()));
+
+    // email valid, hanya password yang kosong
+    await tester.enterText(find.byType(TextFormField).first, 'budi@gmail.com');
+    await tekan(tester, 'Masuk');
+    await tester.pump();
+
+    expect(find.text('Email dan password wajib diisi!'), findsOneWidget);
+  });
+
   testWidgets('login email tanpa @ ditolak lokal', (tester) async {
     await tester.pumpWidget(_app(const LoginPage()));
 
