@@ -320,6 +320,7 @@ abstract final class AppTheme {
         modalBackgroundColor: AppColors.surface,
         elevation: 0,
         modalElevation: 0,
+        dragHandleColor: AppColors.border,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(AppRadius.sheet),

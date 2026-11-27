@@ -77,6 +77,7 @@ class AdminBarberPageState extends State<AdminBarberPage> {
     final berhasil = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      showDragHandle: true,
       builder: (_) => _FormBarber(barber: barber),
     );
 
@@ -391,11 +392,13 @@ class _FormBarberState extends State<_FormBarber> {
         bottom: MediaQuery.viewInsetsOf(context).bottom,
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           AppSpacing.screenH,
           AppSpacing.lg,
           AppSpacing.screenH,
-          AppSpacing.lg,
+          // jarak desain + area navigation bar. MediaQuery.padding otomatis
+          // menjadi 0 saat keyboard terbuka, jadi tidak ada celah ganda.
+          AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
         ),
         child: Form(
           key: _formKey,
@@ -427,9 +430,12 @@ class _FormBarberState extends State<_FormBarber> {
                 decoration: const InputDecoration(
                   labelText: 'Spesialisasi',
                   hintText: 'mis. Spesialis fade dan pompadour.',
+                  // batas 255 karakter tetap berlaku, counter disembunyikan
+                  // supaya jarak ke tombol foto tetap 16
+                  counterText: '',
                 ),
               ),
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.md),
               FadeInButton(
                 label: _fotoBaru != null
                     ? 'Ganti foto'

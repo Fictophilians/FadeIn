@@ -13,6 +13,7 @@ import 'package:fadein_app/service/api.dart';
 import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/widgets/BarberCard.dart';
 import 'package:fadein_app/widgets/BookingCard.dart';
+import 'package:fadein_app/widgets/FadeInButton.dart';
 import 'package:fadein_app/widgets/ServiceCard.dart';
 import 'package:fadein_app/widgets/SlotChip.dart';
 import 'package:flutter/material.dart';
@@ -500,6 +501,27 @@ void main() {
       expect(find.text('Amba'), findsOneWidget);
       expect(find.text('Tambah'), findsOneWidget);
     });
+
+    testWidgets('form tambah tidak tertutup navigation bar', (tester) async {
+      _layarHp(tester);
+      tester.view.padding = const FakeViewPadding(bottom: 48);
+      addTearDown(tester.view.resetPadding);
+
+      await tester.pumpWidget(_app(const AdminBarberPage()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Tambah'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Barber baru'), findsOneWidget);
+
+      // tombol simpan harus berhenti di atas area navigation bar (48)
+      final tombol = tester.getBottomLeft(
+        find.widgetWithText(FadeInButton, 'Tambah barber'),
+      );
+      expect(tombol.dy, lessThanOrEqualTo(640 - 48));
+      expect(tester.takeException(), isNull);
+    });
   });
 
   group('AdminServicePage', () {
@@ -513,6 +535,27 @@ void main() {
       expect(find.text('LAYANAN'), findsOneWidget);
       expect(find.text('Rp35.000'), findsOneWidget);
       expect(find.text('01'), findsOneWidget);
+    });
+
+    testWidgets('form tambah tidak tertutup navigation bar', (tester) async {
+      _layarHp(tester);
+      tester.view.padding = const FakeViewPadding(bottom: 48);
+      addTearDown(tester.view.resetPadding);
+
+      await tester.pumpWidget(_app(const AdminServicePage()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Tambah'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Layanan baru'), findsOneWidget);
+
+      // tombol simpan harus berhenti di atas area navigation bar (48)
+      final tombol = tester.getBottomLeft(
+        find.widgetWithText(FadeInButton, 'Tambah layanan'),
+      );
+      expect(tombol.dy, lessThanOrEqualTo(640 - 48));
+      expect(tester.takeException(), isNull);
     });
   });
 

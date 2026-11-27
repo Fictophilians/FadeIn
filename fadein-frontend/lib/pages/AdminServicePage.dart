@@ -74,6 +74,7 @@ class AdminServicePageState extends State<AdminServicePage> {
     final berhasil = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      showDragHandle: true,
       builder: (_) => _FormLayanan(service: service),
     );
 
@@ -351,11 +352,13 @@ class _FormLayananState extends State<_FormLayanan> {
         bottom: MediaQuery.viewInsetsOf(context).bottom,
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           AppSpacing.screenH,
           AppSpacing.lg,
           AppSpacing.screenH,
-          AppSpacing.lg,
+          // jarak desain + area navigation bar. MediaQuery.padding otomatis
+          // menjadi 0 saat keyboard terbuka, jadi tidak ada celah ganda.
+          AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
         ),
         child: Form(
           key: _formKey,
@@ -375,12 +378,15 @@ class _FormLayananState extends State<_FormLayanan> {
                 decoration: const InputDecoration(
                   labelText: 'Nama layanan',
                   hintText: 'mis. Haircut + Wash',
+                  // batas 100 karakter tetap berlaku, tapi angka counter
+                  // membuat jarak antar field tidak rata di layar kecil
+                  counterText: '',
                 ),
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'Nama wajib diisi.'
                     : null,
               ),
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.md),
               TextFormField(
                 controller: _harga,
                 keyboardType: TextInputType.number,
