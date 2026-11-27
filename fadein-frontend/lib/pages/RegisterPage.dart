@@ -4,14 +4,22 @@ import 'package:fadein_app/service/api.dart';
 import 'package:fadein_app/utils/pesan.dart';
 import 'package:fadein_app/widgets/FadeInButton.dart';
 import 'package:fadein_app/widgets/FadeInTextField.dart';
+import 'package:fadein_app/widgets/HeroHeader.dart';
 import 'package:flutter/material.dart';
 
 /// Layar daftar akun — `docs/DESIGN.md` 7 nomor 3.
 ///
 /// Registrasi selalu menghasilkan role `customer`; tidak ada pilihan peran
-/// di form (backend yang menetapkan).
+/// di form (backend yang menetapkan). Susunan layar mengikuti `LoginPage`:
+/// foto hero, lalu sheet putih yang menimpa tepi bawahnya.
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
+
+  /// Tinggi foto hero. Lebih pendek dari login karena formnya lebih panjang.
+  static const heroTinggi = 280.0;
+
+  /// Jarak teks hero ke tepi bawah foto — lihat [LoginPage.heroPadding].
+  static const heroPadding = 64.0;
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -96,78 +104,145 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('DAFTAR')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.screenH,
-            vertical: AppSpacing.lg,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Buat akun baru untuk mulai booking.',
-                style: AppTextTheme.caption,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              FadeInTextField(
-                controller: nameController,
-                label: 'Nama lengkap',
-                hint: 'Mis. Budi Santoso',
-                prefixIcon: Icons.person_outline,
-              ),
-              const SizedBox(height: AppSpacing.fieldGap),
-              FadeInTextField(
-                controller: emailController,
-                label: 'Email',
-                hint: 'nama@email.com',
-                keyboardType: TextInputType.emailAddress,
-                prefixIcon: Icons.mail_outline,
-              ),
-              const SizedBox(height: AppSpacing.fieldGap),
-              FadeInTextField(
-                controller: passwordController,
-                label: 'Password',
-                obscure: true,
-                prefixIcon: Icons.lock_outline,
-              ),
-              const SizedBox(height: AppSpacing.fieldGap),
-              FadeInTextField(
-                controller: confirmController,
-                label: 'Ulangi password',
-                obscure: true,
-                prefixIcon: Icons.lock_outline,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              FadeInButton(
-                label: 'Daftar',
-                isLoading: isLoading,
-                onPressed: isLoading ? null : daftar,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+      backgroundColor: AppColors.bg,
+      body: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: RegisterPage.heroTinggi,
+            child: HeroHeader(
+              height: RegisterPage.heroTinggi,
+              paddingBottom: RegisterPage.heroPadding,
+              image: 'assets/images/hero_register.jpg',
+              onBack: () => Navigator.pushReplacementNamed(context, '/login'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Sudah punya akun?', style: AppTextTheme.caption),
-                  TextButton(
-                    onPressed: isLoading
-                        ? null
-                        : () => Navigator.pushReplacementNamed(
-                              context,
-                              '/login',
-                            ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.ink,
-                      textStyle: AppTextTheme.label,
+                  Text(
+                    'BUAT AKUN',
+                    style: AppTextTheme.display.copyWith(
+                      fontSize: 28,
+                      color: AppColors.onDark,
                     ),
-                    child: const Text('Masuk'),
                   ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    'Satu menit, lalu bisa booking.',
+                    style: AppTextTheme.caption.copyWith(
+                      color: AppColors.onDark.withValues(alpha: 0.75),
+                    ),
+                  ),
+                  // Jarak caption ke tepi sheet: sheet menimpa 28 di bawah
+                  // foto, jadi caption dinaikkan dulu agar tidak tertutup.
+                  const SizedBox(height: AppSpacing.xxl),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
+
+          Positioned(
+            top: RegisterPage.heroTinggi - AppRadius.sheetLg,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.sheetLg),
+                ),
+              ),
+              // Sama seperti LoginPage: rata atas, tanpa pita kosong di atas
+              // judul; bergulir normal saat layar pendek.
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenH,
+                  AppSpacing.lg,
+                  AppSpacing.screenH,
+                  AppSpacing.xxl,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Buat akun baru',
+                      style: AppTextTheme.display.copyWith(fontSize: 28),
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      'Daftar sekali, langsung bisa booking.',
+                      style: AppTextTheme.caption,
+                    ),
+                    const SizedBox(height: AppSpacing.xxl),
+
+                    FadeInTextField(
+                      controller: nameController,
+                      label: 'Nama lengkap',
+                      hint: 'Mis. Budi Santoso',
+                      prefixIcon: Icons.person_outline,
+                    ),
+                    const SizedBox(height: AppSpacing.fieldGap),
+                    FadeInTextField(
+                      controller: emailController,
+                      label: 'Email',
+                      hint: 'nama@email.com',
+                      keyboardType: TextInputType.emailAddress,
+                      prefixIcon: Icons.mail_outline,
+                    ),
+                    const SizedBox(height: AppSpacing.fieldGap),
+                    FadeInTextField(
+                      controller: passwordController,
+                      label: 'Password',
+                      obscure: true,
+                      prefixIcon: Icons.lock_outline,
+                    ),
+                    const SizedBox(height: AppSpacing.fieldGap),
+                    FadeInTextField(
+                      controller: confirmController,
+                      label: 'Ulangi password',
+                      obscure: true,
+                      prefixIcon: Icons.lock_outline,
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    FadeInButton(
+                      label: 'Daftar',
+                      isLoading: isLoading,
+                      onPressed: isLoading ? null : daftar,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Sudah punya akun?',
+                            style: AppTextTheme.caption,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: isLoading
+                              ? null
+                              : () => Navigator.pushReplacementNamed(
+                                    context,
+                                    '/login',
+                                  ),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.ink,
+                            textStyle: AppTextTheme.label,
+                          ),
+                          child: const Text('Masuk'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

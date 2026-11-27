@@ -15,7 +15,7 @@ Widget _app(Widget home) {
       '/register': (_) => const Scaffold(body: Text('HALAMAN REGISTER')),
       '/login': (_) => const Scaffold(body: Text('HALAMAN LOGIN')),
       '/home': (_) => const Scaffold(body: Text('HALAMAN HOME')),
-      '/admin/barbers': (_) => const Scaffold(body: Text('HALAMAN ADMIN')),
+      '/admin': (_) => const Scaffold(body: Text('HALAMAN ADMIN')),
     },
   );
 }
@@ -32,6 +32,16 @@ Future<void> pumpHingga(WidgetTester tester, Finder finder) async {
   fail('Widget tidak muncul setelah 2 detik: $finder');
 }
 
+/// Gulir ke tombol [label] dulu lalu tekan.
+///
+/// Isi sheet Register lebih tinggi dari layar uji 600px, jadi tombol aksi
+/// bisa berada di luar area tampil.
+Future<void> tekan(WidgetTester tester, String label) async {
+  await tester.ensureVisible(find.text(label));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(label));
+}
+
 void main() {
   // Widget test tidak punya secure storage; cache memori dipakai sendirian.
   setUp(() => Apiservice.tanpaSecureStorage = true);
@@ -46,7 +56,18 @@ void main() {
   testWidgets('login kosong menampilkan peringatan', (tester) async {
     await tester.pumpWidget(_app(const LoginPage()));
 
-    await tester.tap(find.text('Masuk'));
+    await tekan(tester, 'Masuk');
+    await tester.pump();
+
+    expect(find.text('Email dan password wajib diisi!'), findsOneWidget);
+  });
+
+  testWidgets('login password kosong menampilkan peringatan', (tester) async {
+    await tester.pumpWidget(_app(const LoginPage()));
+
+    // email valid, hanya password yang kosong
+    await tester.enterText(find.byType(TextFormField).first, 'budi@gmail.com');
+    await tekan(tester, 'Masuk');
     await tester.pump();
 
     expect(find.text('Email dan password wajib diisi!'), findsOneWidget);
@@ -57,7 +78,7 @@ void main() {
 
     await tester.enterText(find.byType(TextFormField).first, 'budigmail');
     await tester.enterText(find.byType(TextFormField).last, 'rahasia123');
-    await tester.tap(find.text('Masuk'));
+    await tekan(tester, 'Masuk');
     await tester.pump();
 
     expect(find.text('Format email tidak valid!'), findsOneWidget);
@@ -75,7 +96,7 @@ void main() {
 
     await tester.enterText(find.byType(TextFormField).first, 'budi@gmail.com');
     await tester.enterText(find.byType(TextFormField).last, 'salah');
-    await tester.tap(find.text('Masuk'));
+    await tekan(tester, 'Masuk');
     await pumpHingga(tester, find.text('Email atau password salah'));
 
     expect(find.text('Email atau password salah'), findsOneWidget);
@@ -108,7 +129,7 @@ void main() {
 
     await tester.enterText(find.byType(TextFormField).first, 'budi@gmail.com');
     await tester.enterText(find.byType(TextFormField).last, 'customer123');
-    await tester.tap(find.text('Masuk'));
+    await tekan(tester, 'Masuk');
     await pumpHingga(tester, find.text('HALAMAN HOME'));
 
     expect(find.text('HALAMAN HOME'), findsOneWidget);
@@ -140,7 +161,7 @@ void main() {
 
     await tester.enterText(find.byType(TextFormField).first, 'admin@fadein.com');
     await tester.enterText(find.byType(TextFormField).last, 'admin123');
-    await tester.tap(find.text('Masuk'));
+    await tekan(tester, 'Masuk');
     await pumpHingga(tester, find.text('HALAMAN ADMIN'));
 
     expect(find.text('HALAMAN ADMIN'), findsOneWidget);
@@ -149,7 +170,8 @@ void main() {
   testWidgets('tautan Daftar membuka /register', (tester) async {
     await tester.pumpWidget(_app(const LoginPage()));
 
-    await tester.tap(find.text('Daftar'));
+    // layar uji hanya 600px; tombol Daftar ada di bawah, gulir dulu
+    await tekan(tester, 'Daftar');
     await tester.pumpAndSettle();
 
     expect(find.text('HALAMAN REGISTER'), findsOneWidget);
@@ -162,7 +184,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'baru@gmail.com');
     await tester.enterText(find.byType(TextFormField).at(2), 'rahasia123');
     await tester.enterText(find.byType(TextFormField).at(3), 'rahasia123');
-    await tester.tap(find.text('Daftar'));
+    await tekan(tester, 'Daftar');
     await tester.pump();
 
     expect(find.text('Nama minimal 3 karakter!'), findsOneWidget);
@@ -175,7 +197,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'baru@gmail.com');
     await tester.enterText(find.byType(TextFormField).at(2), 'rahasia123');
     await tester.enterText(find.byType(TextFormField).at(3), 'rahasia456');
-    await tester.tap(find.text('Daftar'));
+    await tekan(tester, 'Daftar');
     await tester.pump();
 
     expect(find.text('Konfirmasi password tidak cocok!'), findsOneWidget);
@@ -199,7 +221,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'baru@gmail.com');
     await tester.enterText(find.byType(TextFormField).at(2), 'rahasia123');
     await tester.enterText(find.byType(TextFormField).at(3), 'rahasia123');
-    await tester.tap(find.text('Daftar'));
+    await tekan(tester, 'Daftar');
     await pumpHingga(tester, find.text('HALAMAN LOGIN'));
 
     expect(find.text('HALAMAN LOGIN'), findsOneWidget);
@@ -221,7 +243,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'budi@gmail.com');
     await tester.enterText(find.byType(TextFormField).at(2), 'rahasia123');
     await tester.enterText(find.byType(TextFormField).at(3), 'rahasia123');
-    await tester.tap(find.text('Daftar'));
+    await tekan(tester, 'Daftar');
     await pumpHingga(tester, find.text('Email sudah terdaftar!'));
 
     expect(find.text('Email sudah terdaftar!'), findsOneWidget);

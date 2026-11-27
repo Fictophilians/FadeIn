@@ -1,3 +1,4 @@
+import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/Booking.dart';
 import 'package:fadein_app/models/BookingStatus.dart';
@@ -134,12 +135,39 @@ void main() {
     expect(dipilih, 1);
   });
 
-  testWidgets('StatusBadge menampilkan label sesuai status', (tester) async {
-    await tester.pumpWidget(
-      _wrap(const StatusBadge(status: BookingStatus.confirmed)),
-    );
+  testWidgets('StatusBadge benar untuk 4 status', (tester) async {
+    const harapan = {
+      BookingStatus.pending: ('Menunggu', AppStatusColors.pendingFg),
+      BookingStatus.confirmed: ('Dikonfirmasi', AppStatusColors.confirmedFg),
+      BookingStatus.completed: ('Selesai', AppStatusColors.completedFg),
+      BookingStatus.cancelled: ('Dibatalkan', AppStatusColors.cancelledFg),
+    };
 
-    expect(find.text('Dikonfirmasi'), findsOneWidget);
+    for (final entry in harapan.entries) {
+      await tester.pumpWidget(_wrap(StatusBadge(status: entry.key)));
+
+      expect(
+        find.text(entry.value.$1),
+        findsOneWidget,
+        reason: 'label ${entry.key.value}',
+      );
+
+      // titik 6 di kiri memakai warna teks status
+      final titik = tester.widget<Container>(
+        find
+            .descendant(
+              of: find.byType(StatusBadge),
+              matching: find.byType(Container),
+            )
+            .last,
+      );
+      final dekorasi = titik.decoration! as BoxDecoration;
+      expect(
+        dekorasi.color,
+        entry.value.$2,
+        reason: 'warna ${entry.key.value}',
+      );
+    }
   });
 
   testWidgets('SlotChip terisi tidak bisa ditekan', (tester) async {

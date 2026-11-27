@@ -4,8 +4,12 @@ import 'package:flutter/material.dart';
 
 /// Kartu barber — `docs/DESIGN.md` 5.4.
 ///
-/// Foto bundar 64 dengan border `goldSoft` saat terpilih, nama Inter 600 / 16,
-/// deskripsi maksimal 2 baris, dan tombol Ghost "Pilih".
+/// Dua bentuk:
+///
+/// - **baris** (default): foto bundar 64, nama, deskripsi, tombol "Pilih".
+///   Dipakai form booking.
+/// - **potret** (`portrait: true`): foto mengisi kartu 140×190 dengan tirai
+///   bawah dan nama di atasnya. Dipakai rail barber di beranda.
 class BarberCard extends StatelessWidget {
   const BarberCard({
     super.key,
@@ -14,6 +18,7 @@ class BarberCard extends StatelessWidget {
     this.photoUrl,
     this.selected = false,
     this.onSelect,
+    this.portrait = false,
   });
 
   final String name;
@@ -25,10 +30,132 @@ class BarberCard extends StatelessWidget {
   final bool selected;
   final VoidCallback? onSelect;
 
+  /// `true` = kartu potret untuk daftar horizontal.
+  final bool portrait;
+
   static const _fallback = 'assets/images/avatar_default.png';
+
+  /// Foto lokal per nama barber — dipakai kalau `photoUrl` kosong atau gagal
+  /// dimuat. Tiga barber seed punya asetnya sendiri, jadi kartu tidak pernah
+  /// tampil sebagai avatar kosong saat Cloudinary belum terisi.
+  static const _fotoLokal = {
+    'amba': 'assets/images/barber_amba.jpg',
+    'nasir': 'assets/images/barber_nasir.jpg',
+    'rusdi': 'assets/images/barber_rusdi.jpg',
+  };
+
+  String get _asetLokal => _fotoLokal[name.toLowerCase()] ?? _fallback;
+
+  static const double lebarPotret = 140;
+  static const double tinggiPotret = 190;
 
   @override
   Widget build(BuildContext context) {
+    return portrait ? _potret() : _baris();
+  }
+
+  Widget _foto({
+    required double lebar,
+    required double tinggi,
+    Alignment alignment = Alignment.center,
+  }) {
+    final aset = _asetLokal;
+
+    if (photoUrl == null || photoUrl!.isEmpty) {
+      return Image.asset(
+        aset,
+        width: lebar,
+        height: tinggi,
+        fit: BoxFit.cover,
+        alignment: alignment,
+      );
+    }
+    return Image.network(
+      photoUrl!,
+      width: lebar,
+      height: tinggi,
+      fit: BoxFit.cover,
+      alignment: alignment,
+      errorBuilder: (_, _, _) => Image.asset(
+        aset,
+        width: lebar,
+        height: tinggi,
+        fit: BoxFit.cover,
+        alignment: alignment,
+      ),
+    );
+  }
+
+  Widget _potret() {
+    return SizedBox(
+      width: lebarPotret,
+      height: tinggiPotret,
+      child: Material(
+        color: AppColors.inkSoft,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onSelect,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              _foto(lebar: lebarPotret, tinggi: tinggiPotret),
+
+              // tirai bawah: kontras nama tidak bisa dijamin dari foto acak
+              const DecoratedBox(
+                decoration: BoxDecoration(gradient: AppGradient.photoScrim),
+              ),
+
+              if (selected)
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(AppRadius.card),
+                    ),
+                    border: Border.fromBorderSide(
+                      BorderSide(color: AppColors.gold, width: 2),
+                    ),
+                  ),
+                ),
+
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextTheme.label.copyWith(
+                        fontSize: 15,
+                        color: AppColors.onDark,
+                      ),
+                    ),
+                    if (description != null && description!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        description!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextTheme.caption.copyWith(
+                          fontSize: 11,
+                          color: AppColors.onDark.withValues(alpha: 0.75),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _baris() {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
@@ -52,17 +179,12 @@ class BarberCard extends StatelessWidget {
               ),
             ),
             child: ClipOval(
-              child: Image.network(
-                photoUrl ?? _fallback,
-                width: 64,
-                height: 64,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => Image.asset(
-                  _fallback,
-                  width: 64,
-                  height: 64,
-                  fit: BoxFit.cover,
-                ),
+              // potret barber diambil dari dada ke atas; lingkaran 64 harus
+              // mengambil bagian kepala, bukan perut
+              child: _foto(
+                lebar: 64,
+                tinggi: 64,
+                alignment: Alignment.topCenter,
               ),
             ),
           ),

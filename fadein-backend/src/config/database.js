@@ -12,7 +12,9 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'db_fadein',
   waitForConnections: true,
-  connectionLimit: 5,
+  // Serverless (Vercel) membuat banyak instance paralel; tiap instance punya
+  // pool sendiri. 3 cukup untuk itu dan tidak menghabiskan kuota koneksi Aiven.
+  connectionLimit: 3,
   queueLimit: 0,
   timezone: '+07:00',
   // DATE dikembalikan sebagai string 'YYYY-MM-DD' supaya JSON-nya

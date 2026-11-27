@@ -1,30 +1,12 @@
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/pages/SplashPage.dart';
-import 'package:fadein_app/pages/ThemePreviewPage.dart';
+import 'package:fadein_app/service/api.dart';
+import 'package:fadein_app/widgets/FadeInButton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('halaman pratinjau tema tampil', (tester) async {
-    // Viewport tinggi supaya seluruh ListView dibangun (bukan lazy).
-    tester.view.physicalSize = const Size(1080, 4000);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(
-      MaterialApp(theme: AppTheme.light, home: const ThemePreviewPage()),
-    );
-
-    expect(find.text('PREVIEW TEMA'), findsOneWidget);
-    expect(find.text('Booking Sekarang'), findsOneWidget);
-    expect(find.text('Lihat Layanan'), findsOneWidget);
-    expect(find.text('Nama lengkap'), findsOneWidget);
-    expect(find.text('Rp50.000'), findsWidgets);
-    expect(find.text('Selesai'), findsOneWidget);
-  });
-
   test('token dan theme sesuai DESIGN.md', () {
     expect(AppTextTheme.display.fontFamily, 'Oswald');
     expect(AppTextTheme.section.fontFamily, 'Oswald');
@@ -55,8 +37,56 @@ void main() {
     test('admin ke halaman admin', () {
       expect(
         SplashPage.ruteUntuk(token: 'x', role: 'admin'),
-        '/admin/barbers',
+        '/admin',
       );
+    });
+  });
+
+  group('SplashPage', () {
+    setUp(() {
+      Apiservice.tanpaSecureStorage = true;
+    });
+
+    tearDown(() {
+      Apiservice.setTokenCache(null);
+      Apiservice.setUserCache(null);
+      Apiservice.tanpaSecureStorage = false;
+    });
+
+    Widget app() => MaterialApp(
+          theme: AppTheme.light,
+          home: const SplashPage(),
+          routes: {
+            '/login': (_) => const Scaffold(body: Text('HALAMAN LOGIN')),
+            '/home': (_) => const Scaffold(body: Text('HALAMAN HOME')),
+          },
+        );
+
+    testWidgets('menunggu tombol Mulai, tidak pindah sendiri', (tester) async {
+      await tester.pumpWidget(app());
+      await tester.pump(const Duration(seconds: 3));
+
+      expect(find.text('HALAMAN LOGIN'), findsNothing);
+      expect(find.text('Mulai'), findsOneWidget);
+    });
+
+    testWidgets('Mulai membuka login saat belum ada sesi', (tester) async {
+      await tester.pumpWidget(app());
+      await tester.tap(find.text('Mulai'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('HALAMAN LOGIN'), findsOneWidget);
+    });
+
+    testWidgets('blok isi splash tidak menempel ke dasar layar', (tester) async {
+      await tester.pumpWidget(app());
+      await tester.pump();
+
+      final dasarTombol = tester.getBottomLeft(find.byType(FadeInButton)).dy;
+      final tinggiLayar = tester.view.physicalSize.height /
+          tester.view.devicePixelRatio;
+
+      expect(tinggiLayar - dasarTombol, closeTo(SplashPage.paddingBawah, 1));
     });
   });
 }

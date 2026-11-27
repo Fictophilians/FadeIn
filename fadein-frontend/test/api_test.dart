@@ -95,8 +95,42 @@ void main() {
     }
   });
 
-  test('kegagalan koneksi jadi ApiException tanpa statusCode', () async {
+  test('unggah foto memakai verb dan field yang didaftarkan backend', () async {
     Apiservice.setTokenCache('token-uji');
+
+    var terpanggil = false;
+    Apiservice.client = MockClient((request) async {
+      terpanggil = true;
+      // backend: router.put('/photo', authMiddleware, uploadPhoto, updatePhoto)
+      expect(request.method, 'PUT');
+      expect(request.url.path, endsWith('/users/photo'));
+      expect(request.headers['Authorization'], 'Bearer token-uji');
+
+      // multer hanya menerima field bernama `photo`
+      expect(request.body, contains('name="photo"'));
+
+      return http.Response(
+        jsonEncode({
+          'message': 'Foto profil berhasil diperbarui!',
+          'data': {'id': 2, 'photo': 'https://res.cloudinary.com/x.jpg'},
+        }),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+    });
+
+    final data = await Apiservice.upload(
+      '/users/photo',
+      [1, 2, 3],
+      filename: 'foto.jpg',
+      method: 'PUT',
+    );
+
+    expect(terpanggil, isTrue);
+    expect((data as Map)['photo'], contains('cloudinary'));
+  });
+
+  test('kegagalan koneksi jadi ApiException tanpa statusCode', () async {    Apiservice.setTokenCache('token-uji');
     Apiservice.client = MockClient((request) async {
       throw http.ClientException('connection failed');
     });

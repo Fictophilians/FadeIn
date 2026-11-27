@@ -38,8 +38,34 @@ abstract final class AppRadius {
   /// Bottom sheet / dialog (atas saja).
   static const sheet = 20.0;
 
+  /// Sheet besar yang naik dari bawah (login, register).
+  static const sheetLg = 28.0;
+
+  /// Kartu foto besar (hero, banner).
+  static const xl = 24.0;
+
   /// Chip / badge.
   static const pill = 999.0;
+}
+
+/// Gradien bersama. Jangan tulis `LinearGradient` langsung di layar.
+abstract final class AppGradient {
+  /// Tirai gelap di bawah foto hero supaya judul putih tetap terbaca.
+  static const heroOverlay = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [AppColors.heroTop, AppColors.heroMid, AppColors.heroBottom],
+    stops: [0, 0.35, 1],
+  );
+
+  /// Tirai bawah kartu berfoto supaya nama barber tetap terbaca.
+  /// Bukan hiasan: kontras teks putih di atas foto acak tidak bisa dijamin.
+  static const photoScrim = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [AppColors.transparent, AppColors.photoScrimBottom],
+    stops: [0.45, 1],
+  );
 }
 
 /// Tipografi — `docs/DESIGN.md` bagian 3.
@@ -294,6 +320,7 @@ abstract final class AppTheme {
         modalBackgroundColor: AppColors.surface,
         elevation: 0,
         modalElevation: 0,
+        dragHandleColor: AppColors.border,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(AppRadius.sheet),

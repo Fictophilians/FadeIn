@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:fadein_app/utils/navigator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -32,7 +33,11 @@ class Apiservice {
   static String get baseUrl {
     const dariEnv = String.fromEnvironment('API_BASE_URL');
     if (dariEnv.isNotEmpty) return dariEnv;
-    return 'http://10.0.2.2:3000/api';
+    // Backend sudah deploy ke Vercel. Default ini membuat `flutter run` polos
+    // langsung jalan di Chrome, HP, maupun emulator — `10.0.2.2` hanya benar
+    // untuk emulator Android, dan backend lokal tidak bisa menjangkau Aiven
+    // dari jaringan Indonesia.
+    return 'https://fadein-backend.vercel.app/api';
   }
 
   /// Client yang bisa diganti `MockClient` saat unit test.
@@ -76,6 +81,11 @@ class Apiservice {
   }
 
   static const _timeout = Duration(seconds: 15);
+
+  /// Unggah 2 MB bisa jauh lebih lambat dari request biasa. Backend memberi
+  /// Cloudinary 20 detik, jadi klien harus menunggu lebih lama daripada
+  /// server supaya unggah yang berhasil tidak dilaporkan gagal.
+  static const _timeoutUpload = Duration(seconds: 45);
 
   // cache di memori supaya tidak baca storage di setiap request
   static String? _token;
@@ -202,16 +212,20 @@ class Apiservice {
   /// Unggah satu file gambar dengan nama field `photo`.
   ///
   /// Backend memakai `multer.single('photo')`, jadi nama field tidak boleh lain.
+  /// [method] wajib disebut: tiap endpoint mendaftarkan verb yang berbeda
+  /// (`PUT /users/photo`, `POST|PUT /barbers`), dan default diam-diam pernah
+  /// membuat unggah foto profil terkirim sebagai POST lalu dijawab 404.
   static Future<dynamic> upload(
     String endpoint,
     List<int> bytes, {
     required String filename,
+    required String method,
     String mimeType = 'image/jpeg',
     Map<String, String>? fields,
   }) {
     return _safeRequest(() async {
       final request = http.MultipartRequest(
-        'POST',
+        method,
         Uri.parse('$baseUrl$endpoint'),
       );
 
@@ -233,7 +247,7 @@ class Apiservice {
         ),
       );
 
-      final streamed = await client.send(request).timeout(_timeout);
+      final streamed = await client.send(request).timeout(_timeoutUpload);
       final response = await http.Response.fromStream(streamed);
       return _prosesResponse(response);
     });
@@ -242,7 +256,22 @@ class Apiservice {
   static Future<dynamic> _safeRequest(Future<dynamic> Function() action) async {
     try {
       return await action();
-    } on ApiException {
+    } on ApiException catch (e) {
+      // token kedaluwarsa: bersihkan sesi lalu kembali ke layar masuk,
+      // supaya pengguna tidak buntu di layar "Gagal memuat data"
+      if (e.isUnauthorized) {
+        try {
+          if (await getToken() != null) {
+            await logout();
+            navigatorKey.currentState?.pushNamedAndRemoveUntil(
+              '/login',
+              (_) => false,
+            );
+          }
+        } catch (_) {
+          // pembersihan sesi tidak boleh menutupi error 401 aslinya
+        }
+      }
       rethrow;
     } on TimeoutException {
       throw ApiException('Waktu tunggu habis. Server tidak merespons.');
