@@ -4,8 +4,9 @@ FadeIn adalah aplikasi pemesanan (booking) barbershop. Pelanggan dapat melihat d
 layanan dan barber, memilih jadwal, lalu memantau status booking. Admin mengelola data
 barber, layanan, foto, serta status setiap booking.
 
-Repositori ini berisi **REST API (backend)**. Aplikasi client Flutter dikembangkan pada
-tahap berikutnya (`feat/flutter-ui`).
+Repositori ini berisi **REST API (backend)** dan **aplikasi client Flutter**.
+Keduanya sudah berjalan: backend ter-deploy di Vercel, client terpasang di perangkat
+Android.
 
 ## Teknologi
 
@@ -17,6 +18,8 @@ tahap berikutnya (`feat/flutter-ui`).
 | Autentikasi | JWT (JSON Web Token) + bcryptjs |
 | Upload foto | Multer (memory storage) + Cloudinary |
 | Deploy backend | Vercel (serverless) |
+| Aplikasi client | Flutter 3 (Dart 3), Material 3 |
+| HTTP client | package `http` + `flutter_secure_storage` untuk token |
 
 ## Struktur Repositori
 
@@ -24,21 +27,31 @@ tahap berikutnya (`feat/flutter-ui`).
 FadeIn/
 ├── README.md
 ├── .gitignore
-└── fadein-backend/
-    ├── api/index.js              # entry point Vercel
-    ├── server.js                 # entry point lokal
-    ├── vercel.json               # konfigurasi routing Vercel
-    ├── package.json
-    ├── .env.example              # contoh variabel environment
-    ├── database/
-    │   └── db_fadein.sql         # skema + data seed
-    └── src/
-        ├── app.js                # konfigurasi Express
-        ├── config/               # koneksi MySQL & Cloudinary
-        ├── controllers/          # logika auth, user, barber, service, booking
-        ├── middlewares/          # auth JWT, role, upload, error handler
-        ├── routes/               # definisi endpoint
-        └── utils/                # helper respons & validasi
+├── fadein-backend/
+│   ├── api/index.js              # entry point Vercel
+│   ├── server.js                 # entry point lokal
+│   ├── vercel.json               # konfigurasi routing Vercel
+│   ├── package.json
+│   ├── .env.example              # contoh variabel environment
+│   ├── database/
+│   │   └── db_fadein.sql         # skema + data seed
+│   └── src/
+│       ├── app.js                # konfigurasi Express
+│       ├── config/               # koneksi MySQL & Cloudinary
+│       ├── controllers/          # logika auth, user, barber, service, booking
+│       ├── middlewares/          # auth JWT, role, upload, error handler
+│       ├── routes/               # definisi endpoint
+│       └── utils/                # helper respons & validasi
+└── fadein-frontend/
+    ├── lib/
+    │   ├── constants/            # warna, jarak, radius, tema
+    │   ├── models/               # User, Barber, Service, Booking, Slot
+    │   ├── pages/                # splash, auth, beranda, booking, profil, admin
+    │   ├── service/api.dart      # satu pintu seluruh request HTTP
+    │   ├── utils/                # format Rupiah/tanggal, pesan snackbar
+    │   └── widgets/              # komponen bersama (card, chip, dialog, tombol)
+    ├── test/                     # unit test + widget test
+    └── android/                  # konfigurasi Android (ikon, splash, manifest)
 ```
 
 ## Skema Database
@@ -88,6 +101,47 @@ Cek status server:
 ```bash
 curl http://localhost:3000/api/health
 ```
+
+## Menjalankan Aplikasi Flutter
+
+Aplikasi client ada di `fadein-frontend/`. Secara bawaan ia memakai backend yang
+sudah ter-deploy (`https://fadein-backend.vercel.app/api`), jadi server lokal di
+atas **tidak wajib** dijalankan.
+
+### 1. Prasyarat
+
+- Flutter SDK terpasang dan `flutter doctor` tidak melaporkan masalah
+- Perangkat Android dengan USB debugging aktif, atau emulator
+
+### 2. Install dependency & jalankan
+
+```bash
+cd fadein-frontend
+flutter pub get
+flutter run
+```
+
+### 3. Menunjuk backend lain
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://192.168.1.10:3000/api
+```
+
+Nilai yang sama dipakai saat membangun APK:
+
+```bash
+flutter build apk --release --dart-define=API_BASE_URL=https://fadein-backend.vercel.app/api
+```
+
+### 4. Pemeriksaan wajib
+
+```bash
+flutter analyze     # harus "No issues found!"
+flutter test        # seluruh tes harus lulus
+```
+
+Akun uji sama dengan backend — lihat tabel **Akun Seed** di bawah. Registrasi
+lewat aplikasi selalu membuat akun **customer**; akun admin hanya berasal dari seed.
 
 ## Daftar Endpoint
 
@@ -178,7 +232,10 @@ Mencakup autentikasi, otorisasi role (403), CRUD barber & layanan, validasi ungg
 | `dev` | Integrasi fitur |
 | `feat/database` | Skema `db_fadein.sql` |
 | `feat/backend-api` | Implementasi REST API |
-| `feat/flutter-ui` | Aplikasi client Flutter (rencana) |
+| `feat/flutter-ui` | Aplikasi client Flutter |
+
+Alur rilis: `feat/flutter-ui` → `dev` → `main`, dengan tag `v1.1.0` pada rilis
+yang memuat aplikasi Flutter.
 
 ## Lisensi
 
