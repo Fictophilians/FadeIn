@@ -8,6 +8,7 @@ import 'package:fadein_app/pages/HomePage.dart';
 import 'package:fadein_app/pages/MyBookingPage.dart';
 import 'package:fadein_app/pages/ProfilePage.dart';
 import 'package:fadein_app/models/User.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:flutter/material.dart';
 
 /// Kerangka utama aplikasi — `docs/DESIGN.md` 6.
@@ -44,7 +45,6 @@ class _MenuPageState extends State<MenuPage> {
 
   bool get _admin => widget.role == UserRole.admin.value;
 
-  static const _labelCustomer = ['Beranda', 'Pesanan', 'Profil'];
   static const _ikonCustomer = [
     Icons.home_outlined,
     Icons.receipt_long_outlined,
@@ -56,13 +56,6 @@ class _MenuPageState extends State<MenuPage> {
     Icons.person_rounded,
   ];
 
-  static const _labelAdmin = [
-    'Beranda',
-    'Barber',
-    'Layanan',
-    'Booking',
-    'Profil',
-  ];
   static const _ikonAdmin = [
     Icons.home_outlined,
     Icons.content_cut_outlined,
@@ -96,7 +89,14 @@ class _MenuPageState extends State<MenuPage> {
           const ProfilePage(),
         ];
 
-  List<String> get _label => _admin ? _labelAdmin : _labelCustomer;
+  /// Label diambil dari bahasa aktif; sengaja bukan `const` lagi.
+  List<String> _label(BuildContext context) {
+    final t = context.bahasa;
+    return _admin
+        ? [t.beranda, t.barber, t.layanan, t.booking, t.profil]
+        : [t.beranda, t.pesanan, t.profil];
+  }
+
   List<IconData> get _ikon => _admin ? _ikonAdmin : _ikonCustomer;
   List<IconData> get _ikonAktif =>
       _admin ? _ikonAdminAktif : _ikonCustomerAktif;
@@ -134,6 +134,8 @@ class _MenuPageState extends State<MenuPage> {
 
   @override
   Widget build(BuildContext context) {
+    final label = _label(context);
+
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: IndexedStack(index: currentIndex, children: pages),
@@ -146,13 +148,13 @@ class _MenuPageState extends State<MenuPage> {
               backgroundColor: AppColors.ink,
               foregroundColor: AppColors.onDark,
               icon: const Icon(Icons.add),
-              label: const Text('Buat Booking'),
+              label: Text(context.bahasa.buatBooking),
             )
           : null,
 
       bottomNavigationBar: _NavigasiBawah(
         index: currentIndex,
-        label: _label,
+        label: label,
         ikon: _ikon,
         ikonAktif: _ikonAktif,
         onPilih: _pilih,

@@ -6,9 +6,18 @@ import 'package:intl/intl.dart';
 /// (lihat `dateStrings: true` di `fadein-backend/src/config/db.js`), jadi
 /// fungsi di sini bekerja dari string tersebut.
 
+/// Locale untuk nama bulan/hari. Diganti oleh `gantiBahasa()` di
+/// `utils/bahasa.dart`; bawaan Indonesia.
+String _lokale = 'id_ID';
+
+/// Ganti locale nama bulan & hari. Dipanggil dari tombol bahasa.
+void setLocaleFormat(String lokale) => _lokale = lokale;
+
 /// Format uang Indonesia tanpa desimal.
 ///
 /// `formatRupiah(35000)` → `Rp35.000`
+///
+/// Mata uang tidak ikut berganti bahasa: nilainya tetap rupiah.
 String formatRupiah(num nilai) {
   final formatter = NumberFormat.currency(
     locale: 'id_ID',
@@ -35,7 +44,7 @@ DateTime _parseTanggal(String tanggal) {
 /// `formatTanggal('2026-11-20')` → `20 Nov 2026`
 String formatTanggal(String tanggal) {
   final date = _parseTanggal(tanggal);
-  return DateFormat('d MMM yyyy', 'id_ID').format(date);
+  return DateFormat('d MMM yyyy', _lokale).format(date);
 }
 
 /// Nama bulan dan tahun dari `YYYY-MM`.
@@ -43,7 +52,7 @@ String formatTanggal(String tanggal) {
 /// `formatBulanTahun('2026-11')` → `November 2026`
 String formatBulanTahun(String bulan) {
   final date = _parseTanggal('$bulan-01');
-  return DateFormat('MMMM yyyy', 'id_ID').format(date);
+  return DateFormat('MMMM yyyy', _lokale).format(date);
 }
 
 /// Nama hari dalam bahasa Indonesia.
@@ -51,7 +60,7 @@ String formatBulanTahun(String bulan) {
 /// `formatHari('2026-11-20')` → `Jumat`
 String formatHari(String tanggal) {
   final date = _parseTanggal(tanggal);
-  return DateFormat('EEEE', 'id_ID').format(date);
+  return DateFormat('EEEE', _lokale).format(date);
 }
 
 /// Tanggal hari ini menurut WIB, `YYYY-MM-DD`.

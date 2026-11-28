@@ -3,6 +3,7 @@ import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/Booking.dart';
 import 'package:fadein_app/models/BookingStatus.dart';
 import 'package:fadein_app/service/api.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/utils/pesan.dart';
 import 'package:fadein_app/widgets/BarisInfo.dart';
@@ -89,18 +90,21 @@ class AdminBookingPageState extends State<AdminBookingPage> {
   Future<void> ubahStatus(Booking booking, BookingStatus tujuan) async {
     if (idDiproses != null) return;
 
+    final t = context.bahasa;
+
     // "Selesai" permanen: backend menolak perubahan status setelah completed,
     // jadi minta konfirmasi dulu supaya tidak salah ketuk.
     if (tujuan == BookingStatus.completed) {
       final yakin = await ConfirmDialog.tampilkan(
         context,
-        title: 'Selesaikan booking?',
-        message:
-            'Booking ${booking.customerName} pada '
-            '${formatTanggal(booking.bookingDate)} '
-            '${formatJam(booking.bookingTime)} akan ditandai selesai '
-            'dan tidak bisa diubah lagi.',
-        confirmLabel: 'Ya, selesaikan',
+        title: t.selesaikanTanya,
+        message: t.selesaikanIsi(
+          booking.customerName,
+          formatTanggal(booking.bookingDate),
+          formatJam(booking.bookingTime),
+        ),
+        confirmLabel: t.yaSelesaikan,
+        cancelLabel: t.batal,
       );
 
       if (!yakin || !mounted) return;
@@ -115,7 +119,7 @@ class AdminBookingPageState extends State<AdminBookingPage> {
 
       if (!mounted) return;
 
-      Pesan.sukses(context, 'Status diubah menjadi ${tujuan.label}.');
+      Pesan.sukses(context, t.statusDiubah(t.status(tujuan)));
       setState(() => idDiproses = null);
       await muatData();
     } on ApiException catch (e) {
@@ -132,13 +136,17 @@ class AdminBookingPageState extends State<AdminBookingPage> {
   Future<void> batalkan(Booking booking) async {
     if (idDiproses != null) return;
 
+    final t = context.bahasa;
     final yakin = await ConfirmDialog.tampilkan(
       context,
-      title: 'Batalkan booking?',
-      message: 'Booking ${booking.customerName} pada '
-          '${formatTanggal(booking.bookingDate)} ${formatJam(booking.bookingTime)} '
-          'akan dibatalkan.',
-      confirmLabel: 'Ya, batalkan',
+      title: t.batalkanBookingTanya,
+      message: t.jadwalAkanDibatalkan(
+        booking.customerName,
+        formatTanggal(booking.bookingDate),
+        formatJam(booking.bookingTime),
+      ),
+      confirmLabel: t.yaBatalkan,
+      cancelLabel: t.batal,
     );
 
     if (!yakin || !mounted) return;
@@ -150,7 +158,7 @@ class AdminBookingPageState extends State<AdminBookingPage> {
 
       if (!mounted) return;
 
-      Pesan.sukses(context, 'Booking berhasil dibatalkan!');
+      Pesan.sukses(context, t.bookingDibatalkan);
       setState(() => idDiproses = null);
       await muatData();
     } on ApiException catch (e) {
@@ -168,12 +176,14 @@ class AdminBookingPageState extends State<AdminBookingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: AppBar(title: const Text('BOOKING')),
+      appBar: AppBar(title: Text(context.bahasa.judulBooking)),
       body: _isi(),
     );
   }
 
   Widget _isi() {
+    final t = context.bahasa;
+
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -182,9 +192,9 @@ class AdminBookingPageState extends State<AdminBookingPage> {
       return Center(
         child: EmptyState(
           icon: Icons.cloud_off_outlined,
-          title: 'Gagal memuat booking',
+          title: t.gagalMuatBooking,
           message: error,
-          actionLabel: 'Coba lagi',
+          actionLabel: t.coba,
           onAction: muatData,
         ),
       );
@@ -198,21 +208,21 @@ class AdminBookingPageState extends State<AdminBookingPage> {
             aktif: filter,
             onPilih: (f) => setState(() => filter = f),
           ),
-          Expanded(child: _daftar()),
+          Expanded(child: _daftar(t)),
         ],
       ),
     );
   }
 
-  Widget _daftar() {
+  Widget _daftar(BahasaData t) {
     if (bookings.isEmpty) {
       return ListView(
         children: [
           SizedBox(height: MediaQuery.sizeOf(context).height * 0.15),
-          const EmptyState(
+          EmptyState(
             icon: Icons.event_busy_outlined,
-            title: 'Belum ada booking',
-            message: 'Booking dari customer akan muncul di sini.',
+            title: t.belumAdaBooking,
+            message: t.bookingCustomerMuncul,
           ),
         ],
       );
@@ -226,9 +236,9 @@ class AdminBookingPageState extends State<AdminBookingPage> {
           SizedBox(height: MediaQuery.sizeOf(context).height * 0.15),
           EmptyState(
             icon: Icons.filter_alt_off_outlined,
-            title: 'Tidak ada di filter ini',
-            message: 'Coba pilih status lain.',
-            actionLabel: 'Tampilkan semua',
+            title: t.tidakAdaDiFilter,
+            message: t.cobaStatusLain,
+            actionLabel: t.tampilkanSemua,
             onAction: () => setState(() => filter = null),
           ),
         ],
@@ -302,11 +312,23 @@ class _KartuBookingAdmin extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           const Divider(),
           const SizedBox(height: AppSpacing.sm),
-          BarisInfo(label: 'Customer', nilai: booking.customerName, lebarLabel: 76),
+          BarisInfo(
+            label: context.bahasa.customer,
+            nilai: booking.customerName,
+            lebarLabel: 76,
+          ),
           const SizedBox(height: AppSpacing.xxs),
-          BarisInfo(label: 'Barber', nilai: booking.barberName, lebarLabel: 76),
+          BarisInfo(
+            label: context.bahasa.barber,
+            nilai: booking.barberName,
+            lebarLabel: 76,
+          ),
           const SizedBox(height: AppSpacing.xxs),
-          BarisInfo(label: 'Layanan', nilai: booking.serviceName, lebarLabel: 76),
+          BarisInfo(
+            label: context.bahasa.layanan,
+            nilai: booking.serviceName,
+            lebarLabel: 76,
+          ),
           const SizedBox(height: AppSpacing.sm),
           Text(formatRupiah(booking.price), style: AppTextTheme.price),
           if (status.isActive) ...[
@@ -316,7 +338,7 @@ class _KartuBookingAdmin extends StatelessWidget {
                 if (status == BookingStatus.pending)
                   Expanded(
                     child: _TombolKecil(
-                      label: 'Konfirmasi',
+                      label: context.bahasa.konfirmasi,
                       icon: Icons.check_circle_outline,
                       disabled: diproses,
                       onTap: () => onStatus(BookingStatus.confirmed),
@@ -325,7 +347,7 @@ class _KartuBookingAdmin extends StatelessWidget {
                 if (status == BookingStatus.confirmed)
                   Expanded(
                     child: _TombolKecil(
-                      label: 'Selesai',
+                      label: context.bahasa.selesai,
                       icon: Icons.task_alt,
                       disabled: diproses,
                       onTap: () => onStatus(BookingStatus.completed),
@@ -334,7 +356,7 @@ class _KartuBookingAdmin extends StatelessWidget {
                 const SizedBox(width: AppSpacing.xs),
                 Expanded(
                   child: _TombolKecil(
-                    label: 'Batalkan',
+                    label: context.bahasa.batalkan,
                     icon: Icons.close,
                     danger: true,
                     disabled: diproses,

@@ -1,5 +1,6 @@
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:flutter/material.dart';
 
 /// Kartu layanan — `docs/DESIGN.md` 5.3.
@@ -65,13 +66,13 @@ class ServiceCard extends StatelessWidget {
               width: selected ? 1.5 : 1,
             ),
           ),
-          child: tile ? _isiTile() : _isiBaris(),
+          child: tile ? _isiTile(context) : _isiBaris(context),
         ),
       ),
     );
   }
 
-  Widget _isiBaris() {
+  Widget _isiBaris(BuildContext context) {
     return Row(
       children: [
         Expanded(
@@ -80,7 +81,10 @@ class ServiceCard extends StatelessWidget {
             children: [
               Text(name, style: AppTextTheme.label.copyWith(fontSize: 16)),
               const SizedBox(height: AppSpacing.labelGap),
-              Text('$duration menit', style: AppTextTheme.caption),
+              Text(
+                '$duration ${context.bahasa.menit}',
+                style: AppTextTheme.caption,
+              ),
             ],
           ),
         ),
@@ -92,7 +96,7 @@ class ServiceCard extends StatelessWidget {
     );
   }
 
-  Widget _isiTile() {
+  Widget _isiTile(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -107,7 +111,10 @@ class ServiceCard extends StatelessWidget {
                 ),
               ),
             const Spacer(),
-            Text('$duration mnt', style: AppTextTheme.caption),
+            Text(
+              '$duration ${context.bahasa.menitSingkat}',
+              style: AppTextTheme.caption,
+            ),
           ],
         ),
         const Spacer(),

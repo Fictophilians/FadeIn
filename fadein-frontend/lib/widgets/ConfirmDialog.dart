@@ -1,4 +1,5 @@
 import 'package:fadein_app/constants/theme.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:fadein_app/widgets/FadeInButton.dart';
 import 'package:flutter/material.dart';
 
@@ -6,26 +7,29 @@ import 'package:flutter/material.dart';
 ///
 /// Dua tombol: Ghost "Batal" di kiri, Danger di kanan.
 /// Mengembalikan `true` bila pengguna menekan tombol destruktif.
+///
+/// Label bawaan mengikuti bahasa aktif; kirim [confirmLabel]/[cancelLabel]
+/// hanya bila kalimatnya khusus (mis. "Ya, selesaikan").
 class ConfirmDialog extends StatelessWidget {
   const ConfirmDialog({
     super.key,
     required this.title,
     this.message,
-    this.confirmLabel = 'Ya, hapus',
-    this.cancelLabel = 'Batal',
+    this.confirmLabel,
+    this.cancelLabel,
   });
 
   final String title;
   final String? message;
-  final String confirmLabel;
-  final String cancelLabel;
+  final String? confirmLabel;
+  final String? cancelLabel;
 
   static Future<bool> tampilkan(
     BuildContext context, {
     required String title,
     String? message,
-    String confirmLabel = 'Ya, hapus',
-    String cancelLabel = 'Batal',
+    String? confirmLabel,
+    String? cancelLabel,
   }) async {
     final hasil = await showDialog<bool>(
       context: context,
@@ -41,6 +45,8 @@ class ConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bahasa;
+
     return AlertDialog(
       title: Text(title),
       content: message == null ? null : Text(message!),
@@ -55,7 +61,7 @@ class ConfirmDialog extends StatelessWidget {
           children: [
             Expanded(
               child: FadeInButton(
-                label: cancelLabel,
+                label: cancelLabel ?? t.batal,
                 variant: FadeInButtonVariant.ghost,
                 onPressed: () => Navigator.pop(context, false),
               ),
@@ -63,7 +69,7 @@ class ConfirmDialog extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: FadeInButton(
-                label: confirmLabel,
+                label: confirmLabel ?? t.yaHapus,
                 variant: FadeInButtonVariant.danger,
                 onPressed: () => Navigator.pop(context, true),
               ),

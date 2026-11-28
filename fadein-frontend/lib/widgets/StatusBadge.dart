@@ -1,6 +1,7 @@
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/BookingStatus.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:flutter/material.dart';
 
 /// Chip status booking — `docs/DESIGN.md` 5.5.
@@ -55,7 +56,7 @@ class StatusBadge extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            status.label,
+            context.bahasa.status(status),
             style: AppTextTheme.caption.copyWith(
               color: _fg,
               fontSize: 12,

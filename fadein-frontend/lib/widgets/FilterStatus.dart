@@ -1,6 +1,7 @@
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/BookingStatus.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:flutter/material.dart';
 
 /// Deretan chip filter status booking.
@@ -16,6 +17,8 @@ class FilterStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bahasa;
+
     return SizedBox(
       height: 56,
       child: ListView(
@@ -25,10 +28,14 @@ class FilterStatus extends StatelessWidget {
           vertical: AppSpacing.sm,
         ),
         children: [
-          _Chip(label: 'Semua', selected: aktif == null, onTap: () => onPilih(null)),
+          _Chip(
+            label: t.semua,
+            selected: aktif == null,
+            onTap: () => onPilih(null),
+          ),
           for (final status in BookingStatus.values)
             _Chip(
-              label: status.label,
+              label: t.status(status),
               selected: aktif == status,
               onTap: () => onPilih(status),
             ),

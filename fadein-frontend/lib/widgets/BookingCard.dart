@@ -1,6 +1,7 @@
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/Booking.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/widgets/BarisInfo.dart';
 import 'package:fadein_app/widgets/FadeInButton.dart';
@@ -54,9 +55,9 @@ class BookingCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           const Divider(),
           const SizedBox(height: AppSpacing.sm),
-          BarisInfo(label: 'Barber', nilai: booking.barberName),
+          BarisInfo(label: context.bahasa.barber, nilai: booking.barberName),
           const SizedBox(height: AppSpacing.xxs),
-          BarisInfo(label: 'Layanan', nilai: booking.serviceName),
+          BarisInfo(label: context.bahasa.layanan, nilai: booking.serviceName),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
@@ -68,7 +69,7 @@ class BookingCard extends StatelessWidget {
               ),
               if (bisaBatal)
                 FadeInButton(
-                  label: 'Batalkan',
+                  label: context.bahasa.batalkan,
                   variant: FadeInButtonVariant.ghost,
                   expanded: false,
                   onPressed: onCancel,

@@ -5,6 +5,7 @@ import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/Barber.dart';
 import 'package:fadein_app/pages/ProfilePage.dart';
 import 'package:fadein_app/service/api.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:fadein_app/utils/pesan.dart';
 import 'package:fadein_app/widgets/AksiKecil.dart';
 import 'package:fadein_app/widgets/ConfirmDialog.dart';
@@ -85,11 +86,13 @@ class AdminBarberPageState extends State<AdminBarberPage> {
   }
 
   Future<void> hapus(Barber barber) async {
+    final t = context.bahasa;
     final yakin = await ConfirmDialog.tampilkan(
       context,
-      title: 'Hapus barber?',
-      message: '${barber.name} akan dihapus permanen.',
-      confirmLabel: 'Ya, hapus',
+      title: t.hapusBarberTanya,
+      message: t.akanDihapus(barber.name),
+      confirmLabel: t.yaHapus,
+      cancelLabel: t.batal,
     );
 
     if (!yakin || !mounted) return;
@@ -99,7 +102,7 @@ class AdminBarberPageState extends State<AdminBarberPage> {
 
       if (!mounted) return;
 
-      Pesan.sukses(context, 'Barber berhasil dihapus!');
+      Pesan.sukses(context, t.barberDihapus);
       await muatData();
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -112,21 +115,23 @@ class AdminBarberPageState extends State<AdminBarberPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bahasa;
+
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: AppBar(title: const Text('BARBER')),
+      appBar: AppBar(title: Text(t.judulBarber)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => bukaForm(),
         backgroundColor: AppColors.ink,
         foregroundColor: AppColors.onDark,
         icon: const Icon(Icons.add),
-        label: const Text('Tambah'),
+        label: Text(t.tambah),
       ),
-      body: _isi(),
+      body: _isi(t),
     );
   }
 
-  Widget _isi() {
+  Widget _isi(BahasaData t) {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -135,9 +140,9 @@ class AdminBarberPageState extends State<AdminBarberPage> {
       return Center(
         child: EmptyState(
           icon: Icons.cloud_off_outlined,
-          title: 'Gagal memuat barber',
+          title: t.gagalMuatBarber,
           message: error,
-          actionLabel: 'Coba lagi',
+          actionLabel: t.coba,
           onAction: muatData,
         ),
       );
@@ -147,9 +152,9 @@ class AdminBarberPageState extends State<AdminBarberPage> {
       return Center(
         child: EmptyState(
           icon: Icons.content_cut_outlined,
-          title: 'Belum ada barber',
-          message: 'Tambahkan barber pertama lewat tombol di bawah.',
-          actionLabel: 'Tambah barber',
+          title: t.belumAdaBarber,
+          message: t.tambahkanBarberPertama,
+          actionLabel: t.tambahBarber,
           onAction: () => bukaForm(),
         ),
       );
@@ -241,7 +246,7 @@ class _BarisBarber extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 Text(
-                  barber.description ?? 'Belum ada keterangan.',
+                  barber.description ?? context.bahasa.belumAdaKeterangan,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextTheme.caption,
@@ -251,13 +256,13 @@ class _BarisBarber extends StatelessWidget {
                   children: [
                     AksiKecil(
                       icon: Icons.edit_outlined,
-                      label: 'Edit',
+                      label: context.bahasa.edit,
                       onTap: onEdit,
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     AksiKecil(
                       icon: Icons.delete_outline,
-                      label: 'Hapus',
+                      label: context.bahasa.hapus,
                       danger: true,
                       onTap: onHapus,
                     ),
@@ -321,7 +326,7 @@ class _FormBarberState extends State<_FormBarber> {
     if (!mounted) return;
 
     if (bytes.length > ProfilePage.batasUkuran) {
-      Pesan.gagal(context, 'Ukuran foto maksimal 2 MB.');
+      Pesan.gagal(context, context.bahasa.fotoMaksimal);
       return;
     }
 
@@ -336,7 +341,7 @@ class _FormBarberState extends State<_FormBarber> {
 
     // backend mewajibkan foto saat membuat barber baru
     if (!_modeEdit && _fotoBaru == null) {
-      Pesan.gagal(context, 'Pilih foto barber terlebih dahulu.');
+      Pesan.gagal(context, context.bahasa.pilihFotoDulu);
       return;
     }
 
@@ -387,6 +392,8 @@ class _FormBarberState extends State<_FormBarber> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bahasa;
+
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.viewInsetsOf(context).bottom,
@@ -407,19 +414,19 @@ class _FormBarberState extends State<_FormBarber> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _modeEdit ? 'Ubah barber' : 'Barber baru',
+                _modeEdit ? t.ubahBarber : t.barberBaru,
                 style: AppTextTheme.display.copyWith(fontSize: 22),
               ),
               const SizedBox(height: AppSpacing.md),
               TextFormField(
                 controller: _nama,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'Nama',
-                  hintText: 'mis. Amba',
+                decoration: InputDecoration(
+                  labelText: t.namaField,
+                  hintText: t.namaContohBarber,
                 ),
                 validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Nama wajib diisi.'
+                    ? t.namaWajib
                     : null,
               ),
               const SizedBox(height: AppSpacing.md),
@@ -427,9 +434,9 @@ class _FormBarberState extends State<_FormBarber> {
                 controller: _deskripsi,
                 maxLines: 3,
                 maxLength: 255,
-                decoration: const InputDecoration(
-                  labelText: 'Spesialisasi',
-                  hintText: 'mis. Spesialis fade dan pompadour.',
+                decoration: InputDecoration(
+                  labelText: t.spesialisasi,
+                  hintText: t.spesialisasiHint,
                   // batas 255 karakter tetap berlaku, counter disembunyikan
                   // supaya jarak ke tombol foto tetap 16
                   counterText: '',
@@ -438,8 +445,8 @@ class _FormBarberState extends State<_FormBarber> {
               const SizedBox(height: AppSpacing.md),
               FadeInButton(
                 label: _fotoBaru != null
-                    ? 'Ganti foto'
-                    : (_modeEdit ? 'Ganti foto (opsional)' : 'Pilih foto'),
+                    ? t.gantiFoto
+                    : (_modeEdit ? t.gantiFotoOpsional : t.pilihFoto),
                 icon: Icons.photo_camera_outlined,
                 variant: FadeInButtonVariant.ghost,
                 onPressed: _menyimpan ? null : _pilihFoto,
@@ -460,7 +467,7 @@ class _FormBarberState extends State<_FormBarber> {
               ],
               const SizedBox(height: AppSpacing.lg),
               FadeInButton(
-                label: _modeEdit ? 'Simpan perubahan' : 'Tambah barber',
+                label: _modeEdit ? t.simpanPerubahan : t.tambahBarberAksi,
                 isLoading: _menyimpan,
                 onPressed: _menyimpan ? null : _simpan,
               ),

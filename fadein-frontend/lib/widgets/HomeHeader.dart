@@ -1,5 +1,7 @@
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
+import 'package:fadein_app/utils/bahasa.dart';
+import 'package:fadein_app/widgets/TombolBahasa.dart';
 import 'package:flutter/material.dart';
 
 /// Kepala beranda: blok `ink` gelap dengan sudut bawah membulat.
@@ -68,7 +70,7 @@ class HomeHeader extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Halo, $name',
+                          context.bahasa.sapa(name),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextTheme.label.copyWith(
@@ -102,12 +104,14 @@ class HomeHeader extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.xs),
+                  const TombolBahasa(gelap: true),
+                  const SizedBox(width: AppSpacing.xs),
                   _TombolLonceng(onTap: onBellTap),
                 ],
               ),
               const SizedBox(height: AppSpacing.xl),
               Text(
-                'MAU POTONG\nRAMBUT APA HARI INI?',
+                context.bahasa.heroJudul,
                 style: AppTextTheme.display.copyWith(
                   fontSize: 28,
                   height: 1.1,

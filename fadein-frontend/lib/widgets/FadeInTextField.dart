@@ -1,5 +1,6 @@
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:flutter/material.dart';
 
 /// Input teks sesuai `docs/DESIGN.md` 5.2.
@@ -78,8 +79,8 @@ class _FadeInTextFieldState extends State<FadeInTextField> {
                   color: AppColors.muted,
                 ),
                 tooltip: _tersembunyi
-                    ? 'Tampilkan password'
-                    : 'Sembunyikan password',
+                    ? context.bahasa.tampilkanPassword
+                    : context.bahasa.sembunyikanPassword,
                 onPressed: () {
                   setState(() => _tersembunyi = !_tersembunyi);
                 },

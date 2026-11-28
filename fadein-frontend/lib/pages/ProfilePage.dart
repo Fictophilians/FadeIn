@@ -4,6 +4,7 @@ import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/User.dart';
 import 'package:fadein_app/service/api.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:fadein_app/utils/pesan.dart';
 import 'package:fadein_app/widgets/BarisInfo.dart';
 import 'package:fadein_app/widgets/ConfirmDialog.dart';
@@ -90,7 +91,7 @@ class ProfilePageState extends State<ProfilePage> {
     if (!mounted) return;
 
     if (bytes.length > ProfilePage.batasUkuran) {
-      Pesan.gagal(context, 'Ukuran foto maksimal 2 MB.');
+      Pesan.gagal(context, context.bahasa.fotoMaksimal);
       return;
     }
 
@@ -125,7 +126,7 @@ class ProfilePageState extends State<ProfilePage> {
       await Apiservice.saveUser(user!.toJson());
 
       if (!mounted) return;
-      Pesan.sukses(context, 'Foto profil berhasil diperbarui!');
+      Pesan.sukses(context, context.bahasa.fotoDiperbarui);
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => isMengunggah = false);
@@ -138,11 +139,13 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> keluar() async {
+    final t = context.bahasa;
     final yakin = await ConfirmDialog.tampilkan(
       context,
-      title: 'Keluar dari akun?',
-      message: 'Kamu perlu login lagi untuk melihat pesanan.',
-      confirmLabel: 'Ya, keluar',
+      title: t.keluarTanya,
+      message: t.keluarIsi,
+      confirmLabel: t.yaKeluar,
+      cancelLabel: t.batal,
     );
 
     if (!yakin || !mounted) return;
@@ -158,12 +161,14 @@ class ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: AppBar(title: const Text('PROFIL')),
+      appBar: AppBar(title: Text(context.bahasa.judulProfil)),
       body: _isi(),
     );
   }
 
   Widget _isi() {
+    final t = context.bahasa;
+
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -172,9 +177,9 @@ class ProfilePageState extends State<ProfilePage> {
       return Center(
         child: EmptyState(
           icon: Icons.cloud_off_outlined,
-          title: 'Gagal memuat profil',
+          title: t.gagalMuatProfil,
           message: error,
-          actionLabel: 'Coba lagi',
+          actionLabel: t.coba,
           onAction: muatData,
         ),
       );
@@ -215,7 +220,7 @@ class ProfilePageState extends State<ProfilePage> {
           Center(child: _BadgePeran(role: data.role)),
           const SizedBox(height: AppSpacing.xxl),
           FadeInButton(
-            label: 'Ganti foto',
+            label: t.gantiFoto,
             icon: Icons.photo_camera_outlined,
             variant: FadeInButtonVariant.ghost,
             isLoading: isMengunggah,
@@ -224,14 +229,14 @@ class ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: AppSpacing.lg),
           const Divider(),
           const SizedBox(height: AppSpacing.lg),
-          _barisInfo('Nama', data.name),
+          _barisInfo(t.nama, data.name),
           const SizedBox(height: AppSpacing.md),
-          _barisInfo('Email', data.email),
+          _barisInfo(t.email, data.email),
           const SizedBox(height: AppSpacing.md),
-          _barisInfo('Peran', data.role.label),
+          _barisInfo(t.peranLabel, t.peran(data.role)),
           const SizedBox(height: AppSpacing.xxl),
           FadeInButton(
-            label: 'Keluar',
+            label: t.keluar,
             variant: FadeInButtonVariant.danger,
             icon: Icons.logout,
             onPressed: keluar,
@@ -282,7 +287,7 @@ class _Avatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: onTap != null,
-      label: 'Foto profil, ketuk untuk mengganti',
+      label: context.bahasa.fotoSemantics,
       child: GestureDetector(
         onTap: onTap,
         child: Stack(
@@ -357,7 +362,7 @@ class _BadgePeran extends StatelessWidget {
         border: Border.all(color: admin ? AppColors.gold : AppColors.border),
       ),
       child: Text(
-        role.label,
+        context.bahasa.peran(role),
         style: AppTextTheme.caption.copyWith(
           fontWeight: FontWeight.w600,
           color: AppColors.ink,

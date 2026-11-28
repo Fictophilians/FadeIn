@@ -1,5 +1,6 @@
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:flutter/material.dart';
 
 /// Chip jam — `docs/DESIGN.md` 5.6.
@@ -47,7 +48,9 @@ class SlotChip extends StatelessWidget {
       button: aktif,
       selected: selected,
       enabled: available,
-      label: available ? 'Jam $time' : 'Jam $time sudah terisi',
+      label: available
+          ? context.bahasa.jamSemantics(time)
+          : context.bahasa.jamTerisiSemantics(time),
       child: SizedBox(
         height: 40,
         child: Material(

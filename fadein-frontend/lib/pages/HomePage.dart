@@ -4,6 +4,7 @@ import 'package:fadein_app/models/Barber.dart';
 import 'package:fadein_app/models/Booking.dart';
 import 'package:fadein_app/models/Service.dart';
 import 'package:fadein_app/service/api.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/utils/pesan.dart';
 import 'package:fadein_app/widgets/BarberCard.dart';
@@ -143,7 +144,7 @@ class HomePageState extends State<HomePage> {
 
   void keBooking() {
     if (services.isEmpty || barbers.isEmpty) {
-      Pesan.gagal(context, 'Data layanan atau barber masih kosong!');
+      Pesan.gagal(context, context.bahasa.dataMasihKosong);
       return;
     }
 
@@ -156,6 +157,8 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bahasa;
+
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -165,9 +168,9 @@ class HomePageState extends State<HomePage> {
         child: Center(
           child: EmptyState(
             icon: Icons.cloud_off_outlined,
-            title: 'Gagal memuat data',
+            title: t.gagalMuatData,
             message: error,
-            actionLabel: 'Coba lagi',
+            actionLabel: t.coba,
             onAction: muatData,
           ),
         ),
@@ -180,23 +183,25 @@ class HomePageState extends State<HomePage> {
         padding: EdgeInsets.zero,
         children: [
           _BlokAtas(
-            nama: namaUser.isEmpty ? 'Kak' : namaUser,
+            nama: namaUser.isEmpty ? t.namaFallback : namaUser,
             foto: fotoUser,
             upcoming: upcoming,
-            onBellTap: () => Pesan.sukses(context, 'Belum ada notifikasi.'),
+            onBellTap: () => Pesan.sukses(context, t.belumAdaNotifikasi),
             onUpcomingTap: () => widget.onBukaPesanan?.call(),
           ),
 
           const SizedBox(height: AppSpacing.xl),
-          const SectionTitle(title: 'LAYANAN'),
+          SectionTitle(title: t.layanan.toUpperCase()),
           const SizedBox(height: AppSpacing.sm),
 
           if (services.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenH,
+              ),
               child: EmptyState(
-                title: 'Belum ada layanan',
-                message: 'Admin belum menambahkan layanan.',
+                title: t.belumAdaLayanan,
+                message: t.adminBelumLayanan,
               ),
             )
           else
@@ -231,15 +236,17 @@ class HomePageState extends State<HomePage> {
             ),
 
           const SizedBox(height: AppSpacing.xl),
-          const SectionTitle(title: 'BARBER'),
+          SectionTitle(title: t.barber.toUpperCase()),
           const SizedBox(height: AppSpacing.sm),
 
           if (barbers.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenH,
+              ),
               child: EmptyState(
-                title: 'Belum ada barber',
-                message: 'Admin belum menambahkan barber.',
+                title: t.belumAdaBarber,
+                message: t.adminBelumBarber,
               ),
             )
           else
@@ -347,7 +354,7 @@ class _KartuJadwal extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'JADWAL BERIKUTNYA',
+                        context.bahasa.jadwalBerikutnya,
                         style: AppTextTheme.caption.copyWith(
                           fontSize: 10,
                           letterSpacing: 0.6,

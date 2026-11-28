@@ -4,6 +4,7 @@ import 'package:fadein_app/models/Barber.dart';
 import 'package:fadein_app/models/Service.dart';
 import 'package:fadein_app/models/Slot.dart';
 import 'package:fadein_app/service/api.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/utils/pesan.dart';
 import 'package:fadein_app/widgets/BarberCard.dart';
@@ -142,9 +143,8 @@ class _BookingPageState extends State<BookingPage> {
     return '${b[0]}-${b[1]}-${b[2]}';
   }
 
-  static String _namaHariSingkat(DateTime t) {
-    const hari = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-    return hari[t.weekday - 1];
+  static String _namaHariSingkat(BahasaData t, DateTime tanggal) {
+    return t.hariSingkat[tanggal.weekday - 1];
   }
 
   // ---------- slot ----------
@@ -256,21 +256,27 @@ class _BookingPageState extends State<BookingPage> {
 
       if (!mounted) return;
 
+      final t = context.bahasa;
+      final tanggalTeks = formatTanggal(_keStringTanggal(pilihanTanggal!));
+
       // dialog singkat dulu supaya pengguna sadar booking tersimpan,
       // baru kembali ke tab Pesanan lewat MenuPage
       await showDialog<void>(
         context: context,
         builder: (_) => AlertDialog(
-          title: const Text('Booking berhasil'),
+          title: Text(t.bookingBerhasil),
           content: Text(
-            '${pilihanLayanan!.name} bersama ${pilihanBarber!.name} pada '
-            '${formatTanggal(_keStringTanggal(pilihanTanggal!))} '
-            'pukul ${formatJam(pilihanJam!)} sudah tercatat.',
+            t.bookingBerhasilIsi(
+              pilihanLayanan!.name,
+              pilihanBarber!.name,
+              tanggalTeks,
+              formatJam(pilihanJam!),
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Lihat pesanan'),
+              child: Text(t.lihatPesanan),
             ),
           ],
         ),
@@ -285,10 +291,7 @@ class _BookingPageState extends State<BookingPage> {
 
       // 409 = slot direbut orang lain; kembali ke langkah jam dan segarkan
       if (e.isConflict) {
-        Pesan.gagal(
-          context,
-          'Jadwal tersebut sudah dipesan, silakan pilih jam lain!',
-        );
+        Pesan.gagal(context, context.bahasa.jadwalSudahDipesan);
         setState(() => langkah = 3);
         await muatSlot();
       } else {
@@ -305,6 +308,8 @@ class _BookingPageState extends State<BookingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bahasa;
+
     return PopScope(
       // Back sistem mengikuti tombol back di AppBar: mundur satu langkah,
       // dan baru menutup form saat berada di langkah pertama.
@@ -315,25 +320,25 @@ class _BookingPageState extends State<BookingPage> {
       child: Scaffold(
         backgroundColor: AppColors.bg,
         appBar: AppBar(
-          title: const Text('BOOKING'),
+          title: Text(t.judulBooking),
           leading: IconButton(
             onPressed: kembali,
             icon: const Icon(Icons.arrow_back),
-            tooltip: 'Kembali',
+            tooltip: t.kembali,
           ),
         ),
         body: Column(
           children: [
             _IndikatorLangkah(langkah: langkah),
-            Expanded(child: _isi()),
-            _barisBawah(),
+            Expanded(child: _isi(t)),
+            _barisBawah(t),
           ],
         ),
       ),
     );
   }
 
-  Widget _isi() {
+  Widget _isi(BahasaData t) {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -342,9 +347,9 @@ class _BookingPageState extends State<BookingPage> {
       return Center(
         child: EmptyState(
           icon: Icons.cloud_off_outlined,
-          title: 'Gagal memuat data',
+          title: t.gagalMuatData,
           message: error,
-          actionLabel: 'Coba lagi',
+          actionLabel: t.coba,
           onAction: muatData,
         ),
       );
@@ -352,24 +357,24 @@ class _BookingPageState extends State<BookingPage> {
 
     switch (langkah) {
       case 0:
-        return _langkahLayanan();
+        return _langkahLayanan(t);
       case 1:
-        return _langkahBarber();
+        return _langkahBarber(t);
       case 2:
-        return _langkahTanggal();
+        return _langkahTanggal(t);
       case 3:
-        return _langkahJam();
+        return _langkahJam(t);
       default:
-        return _langkahRingkasan();
+        return _langkahRingkasan(t);
     }
   }
 
-  Widget _langkahLayanan() {
+  Widget _langkahLayanan(BahasaData t) {
     if (services.isEmpty) {
-      return const Center(
+      return Center(
         child: EmptyState(
-          title: 'Belum ada layanan',
-          message: 'Admin belum menambahkan layanan.',
+          title: t.belumAdaLayanan,
+          message: t.adminBelumLayanan,
         ),
       );
     }
@@ -396,12 +401,12 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _langkahBarber() {
+  Widget _langkahBarber(BahasaData t) {
     if (barbers.isEmpty) {
-      return const Center(
+      return Center(
         child: EmptyState(
-          title: 'Belum ada barber',
-          message: 'Admin belum menambahkan barber.',
+          title: t.belumAdaBarber,
+          message: t.adminBelumBarber,
         ),
       );
     }
@@ -428,12 +433,12 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _langkahTanggal() {
+  Widget _langkahTanggal(BahasaData t) {
     return ListView(
       padding: const EdgeInsets.only(bottom: AppSpacing.xl),
       children: [
         const SizedBox(height: AppSpacing.md),
-        const SectionTitle(title: 'PILIH TANGGAL'),
+        SectionTitle(title: t.pilihTanggal),
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
           height: 84,
@@ -448,7 +453,7 @@ class _BookingPageState extends State<BookingPage> {
               final tanggal = daftarTanggal[i];
               return _KartuTanggal(
                 tanggal: tanggal,
-                label: i == 0 ? 'Hari ini' : _namaHariSingkat(tanggal),
+                label: i == 0 ? t.hariIni : _namaHariSingkat(t, tanggal),
                 selected: pilihanTanggal == tanggal,
                 onTap: () => setState(() {
                   pilihanTanggal = tanggal;
@@ -475,7 +480,7 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _langkahJam() {
+  Widget _langkahJam(BahasaData t) {
     if (isLoadingSlot) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -484,9 +489,9 @@ class _BookingPageState extends State<BookingPage> {
       return Center(
         child: EmptyState(
           icon: Icons.schedule_outlined,
-          title: 'Jam belum tersedia',
-          message: 'Coba pilih tanggal lain.',
-          actionLabel: 'Muat ulang',
+          title: t.jamBelumTersedia,
+          message: t.cobaTanggalLain,
+          actionLabel: t.muatUlang,
           onAction: muatSlot,
         ),
       );
@@ -496,12 +501,12 @@ class _BookingPageState extends State<BookingPage> {
       padding: const EdgeInsets.only(bottom: AppSpacing.xl),
       children: [
         const SizedBox(height: AppSpacing.md),
-        const SectionTitle(title: 'PILIH JAM'),
+        SectionTitle(title: t.pilihJam),
         const SizedBox(height: AppSpacing.xs),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
           child: Text(
-            'Jam yang sudah terisi ditandai coret.',
+            t.jamTerisiInfo,
             style: AppTextTheme.caption,
           ),
         ),
@@ -526,7 +531,7 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _langkahRingkasan() {
+  Widget _langkahRingkasan(BahasaData t) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenH,
@@ -535,7 +540,7 @@ class _BookingPageState extends State<BookingPage> {
         AppSpacing.xl,
       ),
       children: [
-        const SectionTitle(title: 'RINGKASAN'),
+        SectionTitle(title: t.ringkasan),
         const SizedBox(height: AppSpacing.md),
         Container(
           padding: const EdgeInsets.all(AppSpacing.cardPadding),
@@ -546,27 +551,27 @@ class _BookingPageState extends State<BookingPage> {
           ),
           child: Column(
             children: [
-              _barisRingkasan('Layanan', pilihanLayanan?.name ?? '-'),
+              _barisRingkasan(t.layanan, pilihanLayanan?.name ?? '-'),
               const Divider(height: AppSpacing.xl),
-              _barisRingkasan('Barber', pilihanBarber?.name ?? '-'),
+              _barisRingkasan(t.barber, pilihanBarber?.name ?? '-'),
               const Divider(height: AppSpacing.xl),
               _barisRingkasan(
-                'Tanggal',
+                t.tanggal,
                 pilihanTanggal == null
                     ? '-'
                     : '${formatHari(_keStringTanggal(pilihanTanggal!))}, '
                         '${formatTanggal(_keStringTanggal(pilihanTanggal!))}',
               ),
               const Divider(height: AppSpacing.xl),
-              _barisRingkasan('Jam', formatJam(pilihanJam ?? '-')),
+              _barisRingkasan(t.jam, formatJam(pilihanJam ?? '-')),
               const Divider(height: AppSpacing.xl),
               _barisRingkasan(
-                'Durasi',
-                '${pilihanLayanan?.duration ?? 0} menit',
+                t.durasi,
+                '${pilihanLayanan?.duration ?? 0} ${t.menit}',
               ),
               const Divider(height: AppSpacing.xl),
               _barisRingkasan(
-                'Total',
+                t.total,
                 formatRupiah(pilihanLayanan?.price ?? 0),
                 tebal: true,
               ),
@@ -588,7 +593,7 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _barisBawah() {
+  Widget _barisBawah(BahasaData t) {
     final terakhir = langkah == BookingPage.jumlahLangkah - 1;
 
     return Container(
@@ -605,7 +610,7 @@ class _BookingPageState extends State<BookingPage> {
       child: SafeArea(
         top: false,
         child: FadeInButton(
-          label: terakhir ? 'Konfirmasi Booking' : 'Lanjut',
+          label: terakhir ? t.konfirmasiBooking : t.lanjut,
           icon: terakhir ? Icons.check : null,
           isLoading: isMenyimpan,
           onPressed: (terakhir ? true : _bolehLanjut) && !isMenyimpan
@@ -623,10 +628,11 @@ class _IndikatorLangkah extends StatelessWidget {
 
   final int langkah;
 
-  static const _label = ['Layanan', 'Barber', 'Tanggal', 'Jam', 'Ringkasan'];
-
   @override
   Widget build(BuildContext context) {
+    final t = context.bahasa;
+    final label = [t.layanan, t.barber, t.tanggal, t.jam, t.ringkasan];
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.screenH,
@@ -639,7 +645,7 @@ class _IndikatorLangkah extends StatelessWidget {
           Row(
             children: [
               Text(
-                'LANGKAH ${langkah + 1}/${BookingPage.jumlahLangkah}',
+                t.langkah(langkah + 1, BookingPage.jumlahLangkah),
                 style: AppTextTheme.caption.copyWith(
                   fontSize: 10,
                   letterSpacing: 0.6,
@@ -650,7 +656,7 @@ class _IndikatorLangkah extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(
-                  _label[langkah],
+                  label[langkah],
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextTheme.label.copyWith(fontSize: 12),
@@ -701,7 +707,7 @@ class _KartuTanggal extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: 'Tanggal $label ${tanggal.day}',
+      label: context.bahasa.tanggalSemantics(label, tanggal.day),
       child: Material(
         color: selected ? AppColors.ink : AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.md),

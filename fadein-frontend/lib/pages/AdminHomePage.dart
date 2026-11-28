@@ -2,11 +2,13 @@ import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/Booking.dart';
 import 'package:fadein_app/service/api.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/utils/statistik.dart';
 import 'package:fadein_app/widgets/EmptyState.dart';
 import 'package:fadein_app/widgets/SectionTitle.dart';
 import 'package:fadein_app/widgets/StatCard.dart';
+import 'package:fadein_app/widgets/TombolBahasa.dart';
 import 'package:flutter/material.dart';
 
 /// Tab Beranda untuk admin — ringkasan angka dari data yang sudah ada.
@@ -88,12 +90,22 @@ class AdminHomePageState extends State<AdminHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: AppBar(title: const Text('DASHBOARD')),
+      appBar: AppBar(
+        title: Text(context.bahasa.judulDashboard),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: AppSpacing.screenH),
+            child: Center(child: TombolBahasa()),
+          ),
+        ],
+      ),
       body: _isi(),
     );
   }
 
   Widget _isi() {
+    final t = context.bahasa;
+
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -102,9 +114,9 @@ class AdminHomePageState extends State<AdminHomePage> {
       return Center(
         child: EmptyState(
           icon: Icons.cloud_off_outlined,
-          title: 'Gagal memuat ringkasan',
+          title: t.gagalMuatRingkasan,
           message: error,
-          actionLabel: 'Coba lagi',
+          actionLabel: t.coba,
           onAction: muatData,
         ),
       );
@@ -128,7 +140,7 @@ class AdminHomePageState extends State<AdminHomePage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
             child: Text(
-              'Ringkasan $bulan',
+              t.ringkasanBulan(bulan),
               style: AppTextTheme.caption,
             ),
           ),
@@ -143,18 +155,18 @@ class AdminHomePageState extends State<AdminHomePage> {
                 children: [
                   Expanded(
                     child: StatCard(
-                      label: 'Pendapatan bulan ini',
+                      label: t.pendapatanBulanIni,
                       value: formatRupiah(s.pendapatanBulanIni),
-                      sub: '${s.hariAktif} hari ada transaksi',
+                      sub: t.hariAdaTransaksi(s.hariAktif),
                       icon: Icons.payments_outlined,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.cardGap),
                   Expanded(
                     child: StatCard(
-                      label: 'Rata-rata per hari',
+                      label: t.rataRataPerHari,
                       value: formatRupiah(s.rataRataPerHari),
-                      sub: 'pendapatan ÷ hari aktif',
+                      sub: t.pembagiRataRata,
                       icon: Icons.show_chart,
                     ),
                   ),
@@ -171,19 +183,21 @@ class AdminHomePageState extends State<AdminHomePage> {
                 children: [
                   Expanded(
                     child: StatCard(
-                      label: 'Booking bulan ini',
+                      label: t.bookingBulanIni,
                       value: '${s.bookingBulanIni}',
-                      sub: 'semua status',
+                      sub: t.semuaStatus,
                       icon: Icons.event_note_outlined,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.cardGap),
                   Expanded(
                     child: StatCard(
-                      label: 'Okupansi hari ini',
+                      label: t.okupansiHariIni,
                       value: '${s.okupansiPersen.toStringAsFixed(0)}%',
-                      sub: '${s.slotTerisiHariIni} dari '
-                          '${s.totalSlotHariIni} slot',
+                      sub: t.slotTerisi(
+                        s.slotTerisiHariIni,
+                        s.totalSlotHariIni,
+                      ),
                       icon: Icons.pie_chart_outline,
                     ),
                   ),
@@ -195,7 +209,7 @@ class AdminHomePageState extends State<AdminHomePage> {
           const SizedBox(height: AppSpacing.xl),
 
           // ——— Modus layanan ———
-          const SectionTitle(title: 'LAYANAN TERPOPULER'),
+          SectionTitle(title: t.layananTerpopuler),
           const SizedBox(height: AppSpacing.sm),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
@@ -205,7 +219,7 @@ class AdminHomePageState extends State<AdminHomePage> {
           const SizedBox(height: AppSpacing.xl),
 
           // ——— Persentase perubahan ———
-          const SectionTitle(title: 'TREN PENDAPATAN'),
+          SectionTitle(title: t.trenPendapatan),
           const SizedBox(height: AppSpacing.sm),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
@@ -226,6 +240,7 @@ class _KartuLayananTerpopuler extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bahasa;
     final nama = statistik.layananTerpopuler;
 
     return Container(
@@ -237,7 +252,7 @@ class _KartuLayananTerpopuler extends StatelessWidget {
       ),
       child: nama == null
           ? Text(
-              'Belum ada booking aktif bulan ini.',
+              t.belumAdaBookingAktif,
               style: AppTextTheme.caption,
             )
           : Column(
@@ -264,13 +279,15 @@ class _KartuLayananTerpopuler extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  '${statistik.jumlahLayananTerpopuler} dari '
-                  '${statistik.bookingDihitung} booking',
+                  t.dariBooking(
+                    statistik.jumlahLayananTerpopuler,
+                    statistik.bookingDihitung,
+                  ),
                   style: AppTextTheme.caption.copyWith(fontSize: 11),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Semantics(
-                  label: 'Porsi layanan terpopuler',
+                  label: t.porsiSemantics,
                   value:
                       '${statistik.persenLayananTerpopuler.toStringAsFixed(0)}%',
                   child: ClipRRect(
@@ -302,6 +319,7 @@ class _KartuPertumbuhan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bahasa;
     final tumbuh = statistik.pertumbuhan;
 
     final (IconData ikon, Color warna, String nilai, String keterangan) =
@@ -310,31 +328,31 @@ class _KartuPertumbuhan extends StatelessWidget {
         Icons.trending_up,
         AppColors.success,
         '+${formatRupiah(statistik.selisih)}',
-        'bulan lalu belum ada transaksi',
+        t.bulanLaluBelumAda,
       ),
       null => (
         Icons.remove,
         AppColors.muted,
         '—',
-        'belum ada transaksi bulan ini & bulan lalu',
+        t.duaBulanKosong,
       ),
       > 0 => (
         Icons.trending_up,
         AppColors.success,
         '+${tumbuh.toStringAsFixed(1)}%',
-        'dari ${formatRupiah(statistik.pendapatanBulanLalu)} bulan lalu',
+        t.dariBulanLalu(formatRupiah(statistik.pendapatanBulanLalu)),
       ),
       < 0 => (
         Icons.trending_down,
         AppColors.danger,
         '${tumbuh.toStringAsFixed(1)}%',
-        'dari ${formatRupiah(statistik.pendapatanBulanLalu)} bulan lalu',
+        t.dariBulanLalu(formatRupiah(statistik.pendapatanBulanLalu)),
       ),
       _ => (
         Icons.trending_flat,
         AppColors.muted,
         '0%',
-        'sama dengan bulan lalu',
+        t.samaDenganBulanLalu,
       ),
     };
 

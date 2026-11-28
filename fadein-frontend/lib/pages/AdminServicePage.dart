@@ -2,6 +2,7 @@ import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/Service.dart';
 import 'package:fadein_app/service/api.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/utils/pesan.dart';
 import 'package:fadein_app/widgets/AksiKecil.dart';
@@ -82,11 +83,13 @@ class AdminServicePageState extends State<AdminServicePage> {
   }
 
   Future<void> hapus(Service service) async {
+    final t = context.bahasa;
     final yakin = await ConfirmDialog.tampilkan(
       context,
-      title: 'Hapus layanan?',
-      message: '${service.name} akan dihapus permanen.',
-      confirmLabel: 'Ya, hapus',
+      title: t.hapusLayananTanya,
+      message: t.akanDihapus(service.name),
+      confirmLabel: t.yaHapus,
+      cancelLabel: t.batal,
     );
 
     if (!yakin || !mounted) return;
@@ -96,7 +99,7 @@ class AdminServicePageState extends State<AdminServicePage> {
 
       if (!mounted) return;
 
-      Pesan.sukses(context, 'Layanan berhasil dihapus!');
+      Pesan.sukses(context, t.layananDihapus);
       await muatData();
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -109,21 +112,23 @@ class AdminServicePageState extends State<AdminServicePage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bahasa;
+
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: AppBar(title: const Text('LAYANAN')),
+      appBar: AppBar(title: Text(t.judulLayanan)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => bukaForm(),
         backgroundColor: AppColors.ink,
         foregroundColor: AppColors.onDark,
         icon: const Icon(Icons.add),
-        label: const Text('Tambah'),
+        label: Text(t.tambah),
       ),
-      body: _isi(),
+      body: _isi(t),
     );
   }
 
-  Widget _isi() {
+  Widget _isi(BahasaData t) {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -132,9 +137,9 @@ class AdminServicePageState extends State<AdminServicePage> {
       return Center(
         child: EmptyState(
           icon: Icons.cloud_off_outlined,
-          title: 'Gagal memuat layanan',
+          title: t.gagalMuatLayanan,
           message: error,
-          actionLabel: 'Coba lagi',
+          actionLabel: t.coba,
           onAction: muatData,
         ),
       );
@@ -144,9 +149,9 @@ class AdminServicePageState extends State<AdminServicePage> {
       return Center(
         child: EmptyState(
           icon: Icons.design_services_outlined,
-          title: 'Belum ada layanan',
-          message: 'Tambahkan layanan pertama lewat tombol di bawah.',
-          actionLabel: 'Tambah layanan',
+          title: t.belumAdaLayanan,
+          message: t.tambahkanLayananPertama,
+          actionLabel: t.tambahLayanan,
           onAction: () => bukaForm(),
         ),
       );
@@ -222,7 +227,7 @@ class _BarisLayanan extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${service.duration} menit',
+                  '${service.duration} ${context.bahasa.menit}',
                   style: AppTextTheme.caption,
                 ),
                 const SizedBox(height: AppSpacing.xxs),
@@ -235,13 +240,13 @@ class _BarisLayanan extends StatelessWidget {
                   children: [
                     AksiKecil(
                       icon: Icons.edit_outlined,
-                      label: 'Edit',
+                      label: context.bahasa.edit,
                       onTap: onEdit,
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     AksiKecil(
                       icon: Icons.delete_outline,
-                      label: 'Hapus',
+                      label: context.bahasa.hapus,
                       danger: true,
                       onTap: onHapus,
                     ),
@@ -321,7 +326,7 @@ class _FormLayananState extends State<_FormLayanan> {
       // sampai layar crash tanpa pesan
       if (!mounted) return;
       setState(() => _menyimpan = false);
-      Pesan.gagal(context, 'Harga dan durasi harus berupa angka.');
+      Pesan.gagal(context, context.bahasa.hargaDurasiAngka);
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _menyimpan = false);
@@ -334,19 +339,21 @@ class _FormLayananState extends State<_FormLayanan> {
   }
 
   /// Validasi angka bulat lebih dari 0 — aturan yang sama dengan backend.
-  String? _validasiAngka(String? v, {int batasAtas = 0}) {
+  String? _validasiAngka(BahasaData t, String? v, {int batasAtas = 0}) {
     final teks = (v ?? '').trim();
-    if (teks.isEmpty) return 'Wajib diisi.';
+    if (teks.isEmpty) return t.wajibDiisi;
 
     final angka = int.tryParse(teks);
-    if (angka == null) return 'Harus berupa angka bulat.';
-    if (angka <= 0) return 'Harus lebih dari 0.';
-    if (batasAtas > 0 && angka > batasAtas) return 'Maksimal $batasAtas.';
+    if (angka == null) return t.harusAngkaBulat;
+    if (angka <= 0) return t.harusLebihDari0;
+    if (batasAtas > 0 && angka > batasAtas) return t.maksimal(batasAtas);
     return null;
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bahasa;
+
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.viewInsetsOf(context).bottom,
@@ -367,7 +374,7 @@ class _FormLayananState extends State<_FormLayanan> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _modeEdit ? 'Ubah layanan' : 'Layanan baru',
+                _modeEdit ? t.ubahLayanan : t.layananBaru,
                 style: AppTextTheme.display.copyWith(fontSize: 22),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -375,15 +382,15 @@ class _FormLayananState extends State<_FormLayanan> {
                 controller: _nama,
                 textInputAction: TextInputAction.next,
                 maxLength: 100,
-                decoration: const InputDecoration(
-                  labelText: 'Nama layanan',
-                  hintText: 'mis. Haircut + Wash',
+                decoration: InputDecoration(
+                  labelText: t.namaLayanan,
+                  hintText: t.namaLayananHint,
                   // batas 100 karakter tetap berlaku, tapi angka counter
                   // membuat jarak antar field tidak rata di layar kecil
                   counterText: '',
                 ),
                 validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Nama wajib diisi.'
+                    ? t.namaWajib
                     : null,
               ),
               const SizedBox(height: AppSpacing.md),
@@ -391,26 +398,26 @@ class _FormLayananState extends State<_FormLayanan> {
                 controller: _harga,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'Harga (rupiah)',
-                  hintText: 'mis. 50000',
+                decoration: InputDecoration(
+                  labelText: t.hargaRupiah,
+                  hintText: t.hargaHint,
                   prefixText: 'Rp ',
                 ),
-                validator: (v) => _validasiAngka(v, batasAtas: 100000000),
+                validator: (v) => _validasiAngka(t, v, batasAtas: 100000000),
               ),
               const SizedBox(height: AppSpacing.md),
               TextFormField(
                 controller: _durasi,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Durasi (menit)',
-                  hintText: 'mis. 45',
+                decoration: InputDecoration(
+                  labelText: t.durasiMenit,
+                  hintText: t.durasiHint,
                 ),
-                validator: (v) => _validasiAngka(v, batasAtas: 600),
+                validator: (v) => _validasiAngka(t, v, batasAtas: 600),
               ),
               const SizedBox(height: AppSpacing.lg),
               FadeInButton(
-                label: _modeEdit ? 'Simpan perubahan' : 'Tambah layanan',
+                label: _modeEdit ? t.simpanPerubahan : t.tambahLayanan,
                 isLoading: _menyimpan,
                 onPressed: _menyimpan ? null : _simpan,
               ),

@@ -1,5 +1,6 @@
 import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:flutter/material.dart';
 
 /// Kartu barber — `docs/DESIGN.md` 5.4.
@@ -51,7 +52,7 @@ class BarberCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return portrait ? _potret() : _baris();
+    return portrait ? _potret() : _baris(context);
   }
 
   Widget _foto({
@@ -155,7 +156,7 @@ class BarberCard extends StatelessWidget {
     );
   }
 
-  Widget _baris() {
+  Widget _baris(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
       decoration: BoxDecoration(
@@ -222,7 +223,7 @@ class BarberCard extends StatelessWidget {
                 ),
                 textStyle: AppTextTheme.label,
               ),
-              child: const Text('Pilih'),
+              child: Text(context.bahasa.pilih),
             )
           else
             const Icon(Icons.check_circle, color: AppColors.gold, size: 24),

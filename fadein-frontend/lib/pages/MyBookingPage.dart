@@ -3,6 +3,7 @@ import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/models/Booking.dart';
 import 'package:fadein_app/models/BookingStatus.dart';
 import 'package:fadein_app/service/api.dart';
+import 'package:fadein_app/utils/bahasa.dart';
 import 'package:fadein_app/utils/format.dart';
 import 'package:fadein_app/utils/pesan.dart';
 import 'package:fadein_app/widgets/BookingCard.dart';
@@ -97,13 +98,17 @@ class MyBookingPageState extends State<MyBookingPage> {
   }
 
   Future<void> batalkan(Booking booking) async {
+    final t = context.bahasa;
     final yakin = await ConfirmDialog.tampilkan(
       context,
-      title: 'Batalkan booking?',
-      message: 'Jadwal ${booking.serviceName} pada '
-          '${formatTanggal(booking.bookingDate)} '
-          '${formatJam(booking.bookingTime)} akan dibatalkan.',
-      confirmLabel: 'Ya, batalkan',
+      title: t.batalkanBookingTanya,
+      message: t.jadwalAkanDibatalkan(
+        booking.serviceName,
+        formatTanggal(booking.bookingDate),
+        formatJam(booking.bookingTime),
+      ),
+      confirmLabel: t.yaBatalkan,
+      cancelLabel: t.batal,
     );
 
     if (!yakin || !mounted) return;
@@ -113,7 +118,7 @@ class MyBookingPageState extends State<MyBookingPage> {
 
       if (!mounted) return;
 
-      Pesan.sukses(context, 'Booking berhasil dibatalkan!');
+      Pesan.sukses(context, t.bookingDibatalkan);
       await muatData();
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -126,14 +131,16 @@ class MyBookingPageState extends State<MyBookingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bahasa;
+
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: AppBar(title: const Text('PESANAN')),
-      body: _isi(),
+      appBar: AppBar(title: Text(t.judulPesanan)),
+      body: _isi(t),
     );
   }
 
-  Widget _isi() {
+  Widget _isi(BahasaData t) {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -142,9 +149,9 @@ class MyBookingPageState extends State<MyBookingPage> {
       return Center(
         child: EmptyState(
           icon: Icons.cloud_off_outlined,
-          title: 'Gagal memuat pesanan',
+          title: t.gagalMuatPesanan,
           message: error,
-          actionLabel: 'Coba lagi',
+          actionLabel: t.coba,
           onAction: muatData,
         ),
       );
@@ -158,22 +165,22 @@ class MyBookingPageState extends State<MyBookingPage> {
             aktif: filter,
             onPilih: (f) => setState(() => filter = f),
           ),
-          Expanded(child: _daftar()),
+          Expanded(child: _daftar(t)),
         ],
       ),
     );
   }
 
-  Widget _daftar() {
+  Widget _daftar(BahasaData t) {
     if (bookings.isEmpty) {
       return ListView(
         children: [
           SizedBox(height: MediaQuery.sizeOf(context).height * 0.15),
           EmptyState(
             icon: Icons.receipt_long_outlined,
-            title: 'Belum ada pesanan',
-            message: 'Booking yang kamu buat akan muncul di sini.',
-            actionLabel: 'Booking sekarang',
+            title: t.belumAdaPesanan,
+            message: t.pesananAkanMuncul,
+            actionLabel: t.bookingSekarang,
             onAction: _buatBooking,
           ),
         ],
@@ -188,9 +195,9 @@ class MyBookingPageState extends State<MyBookingPage> {
           SizedBox(height: MediaQuery.sizeOf(context).height * 0.15),
           EmptyState(
             icon: Icons.filter_alt_off_outlined,
-            title: 'Tidak ada di filter ini',
-            message: 'Coba pilih status lain.',
-            actionLabel: 'Tampilkan semua',
+            title: t.tidakAdaDiFilter,
+            message: t.cobaStatusLain,
+            actionLabel: t.tampilkanSemua,
             onAction: () => setState(() => filter = null),
           ),
         ],
