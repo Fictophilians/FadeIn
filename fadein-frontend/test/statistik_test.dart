@@ -155,6 +155,8 @@ void main() {
 
       // pembagian dengan nol tidak dipaksakan jadi angka
       expect(s.pertumbuhan, isNull);
+      // tapi selisih nominalnya tetap bisa dilaporkan
+      expect(s.selisih, 150000);
     });
 
     test('Januari membandingkan dengan Desember tahun sebelumnya', () {

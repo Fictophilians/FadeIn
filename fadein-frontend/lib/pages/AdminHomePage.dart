@@ -289,10 +289,12 @@ class _KartuLayananTerpopuler extends StatelessWidget {
   }
 }
 
-/// Persentase perubahan pendapatan dibanding bulan lalu.
+/// Perubahan pendapatan dibanding bulan lalu.
 ///
-/// Kalau bulan lalu belum ada pendapatan, pembandingnya tidak ada sehingga
-/// layar menampilkan tanda pisah — bukan angka nol yang menyesatkan.
+/// Kalau bulan lalu belum ada pendapatan, persentase tidak terdefinisi
+/// (pembagi nol). Dalam kondisi itu layar menampilkan selisih nominalnya —
+/// bukan `∞%`, bukan pula angka nol yang menyesatkan. Kalau dua bulan sama
+/// sama kosong, barulah tampil tanda pisah.
 class _KartuPertumbuhan extends StatelessWidget {
   const _KartuPertumbuhan({required this.statistik});
 
@@ -304,11 +306,17 @@ class _KartuPertumbuhan extends StatelessWidget {
 
     final (IconData ikon, Color warna, String nilai, String keterangan) =
         switch (tumbuh) {
+      null when statistik.selisih > 0 => (
+        Icons.trending_up,
+        AppColors.success,
+        '+${formatRupiah(statistik.selisih)}',
+        'bulan lalu belum ada transaksi',
+      ),
       null => (
         Icons.remove,
         AppColors.muted,
         '—',
-        'belum ada data bulan lalu',
+        'belum ada transaksi bulan ini & bulan lalu',
       ),
       > 0 => (
         Icons.trending_up,

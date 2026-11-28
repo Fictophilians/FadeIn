@@ -714,7 +714,7 @@ void main() {
       expect(find.text('67%'), findsOneWidget);
     });
 
-    testWidgets('bulan lalu kosong menampilkan tanda pisah, bukan error', (
+    testWidgets('bulan lalu kosong menampilkan selisih nominal, bukan error', (
       tester,
     ) async {
       _layarHp(tester);
@@ -745,8 +745,29 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+      // persentase tidak dihitung (pembagi nol), tapi selisihnya tampil
+      expect(find.text('+Rp50.000'), findsOneWidget);
+      expect(find.text('bulan lalu belum ada transaksi'), findsOneWidget);
+    });
+
+    testWidgets('dua bulan kosong tetap menampilkan tanda pisah', (
+      tester,
+    ) async {
+      _layarHp(tester);
+
+      Apiservice.client = MockClient((request) async {
+        return _json({'message': 'ok', 'data': <dynamic>[]});
+      });
+
+      await tester.pumpWidget(_app(const AdminHomePage()));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
       expect(find.text('—'), findsOneWidget);
-      expect(find.text('belum ada data bulan lalu'), findsOneWidget);
+      expect(
+        find.text('belum ada transaksi bulan ini & bulan lalu'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('kegagalan jaringan menampilkan tombol coba lagi', (

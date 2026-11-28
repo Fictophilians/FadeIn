@@ -62,6 +62,12 @@ class Statistik {
   /// Σ `price` booking selesai bulan lalu, untuk pembanding.
   final num pendapatanBulanLalu;
 
+  /// `pendapatanBulanIni - pendapatanBulanLalu`.
+  ///
+  /// Dipakai saat bulan lalu masih nol: persentase tidak bisa dihitung
+  /// (pembagi nol), tetapi selisih nominalnya tetap bermakna.
+  num get selisih => pendapatanBulanIni - pendapatanBulanLalu;
+
   /// Persentase perubahan terhadap bulan lalu. `null` kalau bulan lalu nol —
   /// pembagian dengan nol tidak menghasilkan angka yang jujur, jadi layar
   /// menampilkan tanda pisah, bukan `∞`.
