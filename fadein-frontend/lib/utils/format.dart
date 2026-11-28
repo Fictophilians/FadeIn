@@ -38,6 +38,14 @@ String formatTanggal(String tanggal) {
   return DateFormat('d MMM yyyy', 'id_ID').format(date);
 }
 
+/// Nama bulan dan tahun dari `YYYY-MM`.
+///
+/// `formatBulanTahun('2026-11')` → `November 2026`
+String formatBulanTahun(String bulan) {
+  final date = _parseTanggal('$bulan-01');
+  return DateFormat('MMMM yyyy', 'id_ID').format(date);
+}
+
 /// Nama hari dalam bahasa Indonesia.
 ///
 /// `formatHari('2026-11-20')` → `Jumat`

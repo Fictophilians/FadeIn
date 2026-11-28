@@ -2,6 +2,7 @@ import 'package:fadein_app/constants/app_colors.dart';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/pages/AdminBarberPage.dart';
 import 'package:fadein_app/pages/AdminBookingPage.dart';
+import 'package:fadein_app/pages/AdminHomePage.dart';
 import 'package:fadein_app/pages/AdminServicePage.dart';
 import 'package:fadein_app/pages/HomePage.dart';
 import 'package:fadein_app/pages/MyBookingPage.dart';
@@ -19,7 +20,7 @@ import 'package:flutter/material.dart';
 ///
 /// ```
 /// customer : Beranda · Pesanan · Profil
-/// admin    : Barber · Layanan · Booking · Profil
+/// admin    : Beranda · Barber · Layanan · Booking · Profil
 /// ```
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key, this.role = 'customer'});
@@ -39,6 +40,7 @@ class _MenuPageState extends State<MenuPage> {
   final _kunciBeranda = GlobalKey<HomePageState>();
   final _kunciPesanan = GlobalKey<MyBookingPageState>();
   final _kunciBookingAdmin = GlobalKey<AdminBookingPageState>();
+  final _kunciBerandaAdmin = GlobalKey<AdminHomePageState>();
 
   bool get _admin => widget.role == UserRole.admin.value;
 
@@ -54,14 +56,22 @@ class _MenuPageState extends State<MenuPage> {
     Icons.person_rounded,
   ];
 
-  static const _labelAdmin = ['Barber', 'Layanan', 'Booking', 'Profil'];
+  static const _labelAdmin = [
+    'Beranda',
+    'Barber',
+    'Layanan',
+    'Booking',
+    'Profil',
+  ];
   static const _ikonAdmin = [
+    Icons.home_outlined,
     Icons.content_cut_outlined,
     Icons.design_services_outlined,
     Icons.event_note_outlined,
     Icons.person_outline,
   ];
   static const _ikonAdminAktif = [
+    Icons.home_rounded,
     Icons.content_cut,
     Icons.design_services,
     Icons.event_note_rounded,
@@ -70,6 +80,7 @@ class _MenuPageState extends State<MenuPage> {
 
   late final List<Widget> pages = _admin
       ? [
+          AdminHomePage(key: _kunciBerandaAdmin),
           const AdminBarberPage(),
           const AdminServicePage(),
           AdminBookingPage(key: _kunciBookingAdmin),
@@ -95,7 +106,8 @@ class _MenuPageState extends State<MenuPage> {
 
     // muat ulang data tab yang butuh data segar; Beranda ikut disegarkan
     // supaya foto profil dan jadwal terdekat tidak basi setelah aksi di tab lain
-    if (_admin && i == 2) _kunciBookingAdmin.currentState?.muatData();
+    if (_admin && i == 0) _kunciBerandaAdmin.currentState?.muatData();
+    if (_admin && i == 3) _kunciBookingAdmin.currentState?.muatData();
     if (!_admin && i == 0) _kunciBeranda.currentState?.muatData();
     if (!_admin && i == 1) _kunciPesanan.currentState?.muatData();
   }

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 /// Backend palsu: semua daftar kosong, profil berisi satu user.
 ///
@@ -41,6 +42,11 @@ http.Client _clientKosong() {
 }
 
 void main() {
+  setUpAll(() async {
+    // AdminHomePage memformat nama bulan lewat locale id_ID
+    await initializeDateFormatting('id_ID');
+  });
+
   setUp(() {
     Apiservice.tanpaSecureStorage = true;
     Apiservice.client = _clientKosong();
@@ -133,7 +139,7 @@ void main() {
     });
   });
 
-  group('MenuPage admin', () {    testWidgets('menampilkan empat tab admin', (tester) async {
+  group('MenuPage admin', () {    testWidgets('menampilkan lima tab admin', (tester) async {
       Apiservice.setTokenCache('token');
       Apiservice.setUserCache({'id': 1, 'role': 'admin'});
 
@@ -143,11 +149,14 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
+      expect(find.text('Beranda'), findsOneWidget);
       expect(find.text('Barber'), findsOneWidget);
       expect(find.text('Layanan'), findsOneWidget);
       expect(find.text('Booking'), findsOneWidget);
       expect(find.text('Profil'), findsOneWidget);
-      expect(find.text('Beranda'), findsNothing);
+
+      // tab pertama admin adalah dashboard, bukan katalog customer
+      expect(find.text('DASHBOARD'), findsOneWidget);
 
       // admin mengelola data, bukan memesan
       expect(find.text('Buat Booking'), findsNothing);

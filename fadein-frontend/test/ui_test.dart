@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/pages/AdminBarberPage.dart';
 import 'package:fadein_app/pages/AdminBookingPage.dart';
+import 'package:fadein_app/pages/AdminHomePage.dart';
 import 'package:fadein_app/pages/AdminServicePage.dart';
 import 'package:fadein_app/pages/BookingPage.dart';
 import 'package:fadein_app/pages/HomePage.dart';
@@ -16,6 +17,7 @@ import 'package:fadein_app/widgets/BookingCard.dart';
 import 'package:fadein_app/widgets/FadeInButton.dart';
 import 'package:fadein_app/widgets/ServiceCard.dart';
 import 'package:fadein_app/widgets/SlotChip.dart';
+import 'package:fadein_app/widgets/StatCard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -620,6 +622,147 @@ void main() {
       expect(find.text('09:00'), findsOneWidget);
       expect(find.text('10:00'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('AdminHomePage', () {
+    /// Booking bertanggal hari ini (WIB) supaya masuk hitungan bulan berjalan
+    /// tanpa bergantung pada tanggal saat tes dijalankan.
+    Map<String, dynamic> booking({
+      required String layanan,
+      required num harga,
+      required String status,
+      required String tanggal,
+      int id = 1,
+    }) {
+      return {
+        'id': id,
+        'user_id': 2,
+        'barber_id': 1,
+        'service_id': 1,
+        'booking_date': tanggal,
+        'booking_time': '10:00',
+        'status': status,
+        'customer_name': 'Budi',
+        'barber_name': 'Amba',
+        'service_name': layanan,
+        'price': harga,
+        'duration': 45,
+      };
+    }
+
+    testWidgets('menampilkan angka ringkasan dari data bulan ini', (
+      tester,
+    ) async {
+      _layarHp(tester);
+
+      final hariIni = tanggalHariIniWib();
+      Apiservice.client = MockClient((request) async {
+        final path = request.url.path;
+        if (path.endsWith('/barbers')) {
+          return _json({
+            'message': 'ok',
+            'data': [
+              {'id': 1, 'name': 'Amba', 'description': 'Fade', 'photo': null},
+            ],
+          });
+        }
+        if (path.endsWith('/bookings')) {
+          return _json({
+            'message': 'ok',
+            'data': [
+              booking(
+                id: 1,
+                layanan: 'Haircut',
+                harga: 50000,
+                status: 'completed',
+                tanggal: hariIni,
+              ),
+              booking(
+                id: 2,
+                layanan: 'Haircut',
+                harga: 70000,
+                status: 'completed',
+                tanggal: hariIni,
+              ),
+              booking(
+                id: 3,
+                layanan: 'Cukur Jenggot',
+                harga: 30000,
+                status: 'pending',
+                tanggal: hariIni,
+              ),
+            ],
+          });
+        }
+        return _json({'message': 'ok', 'data': <dynamic>[]});
+      });
+
+      await tester.pumpWidget(_app(const AdminHomePage()));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('DASHBOARD'), findsOneWidget);
+      expect(find.byType(StatCard), findsNWidgets(4));
+
+      // pendapatan dan rata-rata sama karena hanya satu hari aktif
+      expect(find.text('Rp120.000'), findsNWidgets(2));
+      // 3 booking dari 12 slot (1 barber x 12 jam)
+      expect(find.text('25%'), findsOneWidget);
+      // modus layanan 2 dari 3 booking
+      expect(find.text('Haircut'), findsOneWidget);
+      expect(find.text('67%'), findsOneWidget);
+    });
+
+    testWidgets('bulan lalu kosong menampilkan tanda pisah, bukan error', (
+      tester,
+    ) async {
+      _layarHp(tester);
+
+      final hariIni = tanggalHariIniWib();
+      Apiservice.client = MockClient((request) async {
+        final path = request.url.path;
+        if (path.endsWith('/barbers')) {
+          return _json({'message': 'ok', 'data': <dynamic>[]});
+        }
+        if (path.endsWith('/bookings')) {
+          return _json({
+            'message': 'ok',
+            'data': [
+              booking(
+                layanan: 'Haircut',
+                harga: 50000,
+                status: 'completed',
+                tanggal: hariIni,
+              ),
+            ],
+          });
+        }
+        return _json({'message': 'ok', 'data': <dynamic>[]});
+      });
+
+      await tester.pumpWidget(_app(const AdminHomePage()));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('—'), findsOneWidget);
+      expect(find.text('belum ada data bulan lalu'), findsOneWidget);
+    });
+
+    testWidgets('kegagalan jaringan menampilkan tombol coba lagi', (
+      tester,
+    ) async {
+      _layarHp(tester);
+
+      Apiservice.client = MockClient((request) async {
+        return _json({'message': 'Server mati'}, 500);
+      });
+
+      await tester.pumpWidget(_app(const AdminHomePage()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Gagal memuat ringkasan'), findsOneWidget);
+      expect(find.text('Coba lagi'), findsOneWidget);
     });
   });
 }

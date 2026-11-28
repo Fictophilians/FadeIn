@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/pages/AdminBookingPage.dart';
+import 'package:fadein_app/pages/AdminHomePage.dart';
 import 'package:fadein_app/pages/BookingPage.dart';
 import 'package:fadein_app/pages/HomePage.dart';
 import 'package:fadein_app/pages/LoginPage.dart';
@@ -299,6 +300,7 @@ void main() {
       'Booking': const BookingPage(),
       'Pesanan': const MyBookingPage(),
       'Profil': const ProfilePage(),
+      'Admin Dashboard': const AdminHomePage(),
       'Admin Booking': const AdminBookingPage(),
     };
 
