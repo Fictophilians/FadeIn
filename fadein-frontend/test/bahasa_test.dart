@@ -1,6 +1,7 @@
 import 'package:fadein_app/constants/theme.dart';
 import 'package:fadein_app/utils/bahasa.dart';
 import 'package:fadein_app/utils/format.dart';
+import 'package:fadein_app/widgets/HomeHeader.dart';
 import 'package:fadein_app/widgets/TombolBahasa.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,7 +36,7 @@ void main() {
       final t = dataBahasa(b);
       expect(t.beranda, isNotEmpty);
       expect(t.gagalMuatData, isNotEmpty);
-      expect(t.splashJudul, isNotEmpty);
+      expect(t.email, isNotEmpty);
       expect(t.hariSingkat, hasLength(7));
       expect(t.bahasa, b);
     }
@@ -83,8 +84,10 @@ void main() {
 
     gantiBahasa(Bahasa.en);
 
-    await tester.pumpWidget(_app(const Center(child: TombolBahasa())));
+    // hero beranda paling panjang di antara semua teks EN
+    await tester.pumpWidget(_app(const HomeHeader(name: 'Budi')));
 
+    expect(find.text('WHAT HAIRCUT\nDO YOU WANT TODAY?'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

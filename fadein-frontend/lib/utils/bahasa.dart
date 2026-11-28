@@ -8,25 +8,17 @@ import 'package:flutter/material.dart';
 /// Indonesia adalah bawaan, jadi seluruh tes lama tetap berjalan tanpa
 /// menyentuh apa pun.
 enum Bahasa {
-  id('id', 'ID', 'id_ID', Locale('id', 'ID')),
-  en('en', 'EN', 'en_US', Locale('en', 'US'));
+  id(Locale('id', 'ID')),
+  en(Locale('en', 'US'));
 
-  const Bahasa(this.value, this.kode, this.lokaleFormat, this.locale);
+  const Bahasa(this.locale);
 
-  /// Kode pendek untuk tombol: `ID` / `EN`.
-  final String value;
-
-  /// Teks yang tampil di tombol bahasa.
-  final String kode;
-
-  /// Nama locale untuk `DateFormat` (`id_ID` / `en_US`).
-  final String lokaleFormat;
-
-  /// Locale untuk `MaterialApp`, supaya date picker dan tombol bawaan
-  /// Material ikut berganti bahasa.
+  /// Locale untuk `MaterialApp` dan `DateFormat`; `toString()`-nya
+  /// `id_ID` / `en_US`.
   final Locale locale;
 
-  Bahasa get lain => this == Bahasa.id ? Bahasa.en : Bahasa.id;
+  /// Teks di tombol bahasa: `ID` / `EN`.
+  String get kode => name.toUpperCase();
 }
 
 /// Seluruh teks yang tampil di layar, satu getter per kalimat.
@@ -58,6 +50,9 @@ abstract class BahasaData {
   String get belumAdaKeterangan;
   String get semua;
   String get customer;
+  String get email;
+  String get tampilkanPassword;
+  String get sembunyikanPassword;
   String get wajibDiisi;
   String get harusAngkaBulat;
   String get harusLebihDari0;
@@ -84,42 +79,6 @@ abstract class BahasaData {
   String status(BookingStatus s);
   String peran(UserRole r);
   String get peranLabel;
-
-  // ---------- splash ----------
-  String get splashJudul;
-  String get splashIsi;
-  String get mulai;
-
-  // ---------- login ----------
-  String get loginHeroJudul;
-  String get loginHeroIsi;
-  String get loginJudul;
-  String get loginIsi;
-  String get email;
-  String get emailHint;
-  String get password;
-  String get masuk;
-  String get belumPunyaAkun;
-  String get daftar;
-  String get emailPasswordWajib;
-  String get emailTidakValid;
-  String get emailAtauPasswordSalah;
-  String get tampilkanPassword;
-  String get sembunyikanPassword;
-
-  // ---------- register ----------
-  String get daftarHeroJudul;
-  String get daftarHeroIsi;
-  String get daftarJudul;
-  String get daftarIsi;
-  String get namaLengkap;
-  String get namaContoh;
-  String get ulangiPassword;
-  String get sudahPunyaAkun;
-  String get namaMinimal3;
-  String get passwordMinimal6;
-  String get konfirmasiTidakCocok;
-  String get registrasiBerhasil;
 
   // ---------- beranda customer ----------
   String get gagalMuatData;
@@ -294,6 +253,12 @@ class _BahasaId extends BahasaData {
   @override
   String get customer => 'Customer';
   @override
+  String get email => 'Email';
+  @override
+  String get tampilkanPassword => 'Tampilkan password';
+  @override
+  String get sembunyikanPassword => 'Sembunyikan password';
+  @override
   String get wajibDiisi => 'Wajib diisi.';
   @override
   String get harusAngkaBulat => 'Harus berupa angka bulat.';
@@ -336,69 +301,6 @@ class _BahasaId extends BahasaData {
   String peran(UserRole r) => r.label;
   @override
   String get peranLabel => 'Peran';
-
-  @override
-  String get splashJudul => 'Booking barbershop\ntanpa antre.';
-  @override
-  String get splashIsi => 'Pilih barber, pilih jam, datang tanpa menunggu.';
-  @override
-  String get mulai => 'Mulai';
-
-  @override
-  String get loginHeroJudul => 'TEMUKAN GAYA KAMU';
-  @override
-  String get loginHeroIsi => 'Booking barbershop tanpa antre.';
-  @override
-  String get loginJudul => 'Selamat datang kembali';
-  @override
-  String get loginIsi => 'Masuk untuk melanjutkan booking.';
-  @override
-  String get email => 'Email';
-  @override
-  String get emailHint => 'nama@email.com';
-  @override
-  String get password => 'Password';
-  @override
-  String get masuk => 'Masuk';
-  @override
-  String get belumPunyaAkun => 'Belum punya akun?';
-  @override
-  String get daftar => 'Daftar';
-  @override
-  String get emailPasswordWajib => 'Email dan password wajib diisi!';
-  @override
-  String get emailTidakValid => 'Format email tidak valid!';
-  @override
-  String get emailAtauPasswordSalah => 'Email atau password salah';
-  @override
-  String get tampilkanPassword => 'Tampilkan password';
-  @override
-  String get sembunyikanPassword => 'Sembunyikan password';
-
-  @override
-  String get daftarHeroJudul => 'BUAT AKUN';
-  @override
-  String get daftarHeroIsi => 'Satu menit, lalu bisa booking.';
-  @override
-  String get daftarJudul => 'Buat akun baru';
-  @override
-  String get daftarIsi => 'Daftar sekali, langsung bisa booking.';
-  @override
-  String get namaLengkap => 'Nama lengkap';
-  @override
-  String get namaContoh => 'Mis. Budi Santoso';
-  @override
-  String get ulangiPassword => 'Ulangi password';
-  @override
-  String get sudahPunyaAkun => 'Sudah punya akun?';
-  @override
-  String get namaMinimal3 => 'Nama minimal 3 karakter!';
-  @override
-  String get passwordMinimal6 => 'Password minimal 6 karakter!';
-  @override
-  String get konfirmasiTidakCocok => 'Konfirmasi password tidak cocok!';
-  @override
-  String get registrasiBerhasil => 'Registrasi berhasil, silakan login!';
 
   @override
   String get gagalMuatData => 'Gagal memuat data';
@@ -694,6 +596,12 @@ class _BahasaEn extends BahasaData {
   @override
   String get customer => 'Customer';
   @override
+  String get email => 'Email';
+  @override
+  String get tampilkanPassword => 'Show password';
+  @override
+  String get sembunyikanPassword => 'Hide password';
+  @override
   String get wajibDiisi => 'Required.';
   @override
   String get harusAngkaBulat => 'Must be a whole number.';
@@ -741,69 +649,6 @@ class _BahasaEn extends BahasaData {
   String peran(UserRole r) => r == UserRole.admin ? 'Admin' : 'Customer';
   @override
   String get peranLabel => 'Role';
-
-  @override
-  String get splashJudul => 'Barbershop booking\nwithout the queue.';
-  @override
-  String get splashIsi => 'Pick a barber, pick a time, walk in without waiting.';
-  @override
-  String get mulai => 'Get started';
-
-  @override
-  String get loginHeroJudul => 'FIND YOUR STYLE';
-  @override
-  String get loginHeroIsi => 'Barbershop booking without the queue.';
-  @override
-  String get loginJudul => 'Welcome back';
-  @override
-  String get loginIsi => 'Sign in to continue booking.';
-  @override
-  String get email => 'Email';
-  @override
-  String get emailHint => 'name@email.com';
-  @override
-  String get password => 'Password';
-  @override
-  String get masuk => 'Sign in';
-  @override
-  String get belumPunyaAkun => "Don't have an account?";
-  @override
-  String get daftar => 'Register';
-  @override
-  String get emailPasswordWajib => 'Email and password are required!';
-  @override
-  String get emailTidakValid => 'Invalid email format!';
-  @override
-  String get emailAtauPasswordSalah => 'Wrong email or password';
-  @override
-  String get tampilkanPassword => 'Show password';
-  @override
-  String get sembunyikanPassword => 'Hide password';
-
-  @override
-  String get daftarHeroJudul => 'CREATE ACCOUNT';
-  @override
-  String get daftarHeroIsi => 'One minute, then you can book.';
-  @override
-  String get daftarJudul => 'Create a new account';
-  @override
-  String get daftarIsi => 'Register once, book right away.';
-  @override
-  String get namaLengkap => 'Full name';
-  @override
-  String get namaContoh => 'e.g. Budi Santoso';
-  @override
-  String get ulangiPassword => 'Repeat password';
-  @override
-  String get sudahPunyaAkun => 'Already have an account?';
-  @override
-  String get namaMinimal3 => 'Name must be at least 3 characters!';
-  @override
-  String get passwordMinimal6 => 'Password must be at least 6 characters!';
-  @override
-  String get konfirmasiTidakCocok => "Passwords don't match!";
-  @override
-  String get registrasiBerhasil => 'Registered, please sign in!';
 
   @override
   String get gagalMuatData => 'Failed to load data';
@@ -1083,7 +928,7 @@ final ValueNotifier<Bahasa> bahasaAktif = ValueNotifier(Bahasa.id);
 void gantiBahasa(Bahasa baru) {
   if (bahasaAktif.value == baru) return;
   bahasaAktif.value = baru;
-  setLocaleFormat(baru.lokaleFormat);
+  setLocaleFormat(baru.locale.toString());
 }
 
 /// Menyediakan [BahasaData] ke seluruh pohon widget.
